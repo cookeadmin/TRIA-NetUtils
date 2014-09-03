@@ -12,12 +12,12 @@
 # total size is 1059506167487  speedup is 33605.25
 
 date=$(date "+%s")
-BACKUP_DIR=/media/COOKE-LAB
+BACKUP_DIR=/media/cookeadmin/COOKE-LAB
 BACKUP_PREFIX=$BACKUP_DIR/COOKE-LAB-BACKUP
 BACKUP_CURRENT=$BACKUP_PREFIX-CURRENT
 BACKUP_DATE=$BACKUP_PREFIX-$date
-
-database_list=/TRIA-NetUtils/reference_lists/cooke-db-list
+DATABASE_DIR=$BACKUP_DIR/COOKE-LAB-DATABASES
+DATABASE_LIST=/TRIA-NetUtils/reference_lists/cooke-db-list
 
 # RSYNC_RUN_DIR=$BACKUP_DIR/RSYNC_RUN_LOG_FILES
 # mkdir -p $RSYNC_RUN_DIR
@@ -32,10 +32,15 @@ database_list=/TRIA-NetUtils/reference_lists/cooke-db-list
 # echo $BACKUP_DATE
 # echo $BACKUP_PREFIX
 # echo $BACKUP_CURRENT
-perl /TRIA-NetUtils/bin/pg_dump_databases.pl -i $database_list -o $BACKUP_DIR
+perl /TRIA-NetUtils/bin/pg_dump_databases.pl -i $DATABASE_LIST -o $DATABASE_DIR
 
 # rsync -aAXvzm --link-dest=$BACKUP_CURRENT /* $BACKUP_DATE --delete --delete-excluded --exclude={'/home/*/.gvfs','/home/*/.mozilla','/dev/*','/proc/*','/sys/*','/tmp/*','/run/*','/mnt/*','/media/*',/lost+found} 1>$rsync_run_log 2>$rsync_error_log
 rsync -aAXvzm --link-dest=$BACKUP_CURRENT /* $BACKUP_DATE --delete --delete-excluded --exclude={'/home/*/.gvfs','/home/*/.mozilla','/dev/*','/proc/*','/sys/*','/tmp/*','/run/*','/mnt/*','/media/*',/lost+found}
+
+
+# DRY-RUN for testing purposes only. Comment out when you want to perform rsync backups of entire system.
+# rsync -aAXvzmn --link-dest=$BACKUP_CURRENT /* $BACKUP_DATE --delete --delete-excluded --exclude={'/home/*/.gvfs','/home/*/.mozilla','/dev/*','/proc/*','/sys/*','/tmp/*','/run/*','/mnt/*','/media/*',/lost+found}
+
 
 rm -f $BACKUP_CURRENT
 ln -s $BACKUP_DATE $BACKUP_CURRENT
