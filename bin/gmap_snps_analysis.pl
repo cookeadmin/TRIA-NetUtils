@@ -9,7 +9,7 @@ use File::Basename;
 use List::Compare;
 use Switch;
 
-# perl find_gmap_snps.pl -s /home/cookeadmin/workspace/cathy/AllSNPsVariantConsensusPositions.txt -g /home/cookeadmin/workspace/cathy/AllSNPs_output_GMAP.parsed -q /home/cookeadmin/workspace/cathy/AllSNPsContigs.fa -o ~/workspace/cathy
+# perl gmap_snps_analysis.pl -s /home/cookeadmin/workspace/cathy/AllSNPsVariantConsensusPositions.txt -g /home/cookeadmin/workspace/cathy/AllSNPs_output_GMAP.parsed -q /home/cookeadmin/workspace/cathy/AllSNPsContigs.fa -o ~/workspace/cathy
 my ($snps_infile, $gmap_infile, $query_infile, $output_dir);
 GetOptions(
       's=s'    => \$snps_infile,

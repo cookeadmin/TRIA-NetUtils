@@ -6,14 +6,11 @@ use Getopt::Long;
 use File::Basename;
 use Bio::SearchIO;
 
-my ($target_infile, $query_infile, $min_percent_id, $blastn_task, $gap_open, $gap_extend, $num_descriptions, $num_alignments, $blast_num_cpu, $output_dir);
+my ($target_infile, $query_infile, $min_percent_id, $num_descriptions, $num_alignments, $blast_num_cpu, $output_dir);
 GetOptions(
       'd=s'    => \$target_infile,
       'i=s'    => \$query_infile,
       'p=s'    => \$min_percent_id,
-      't=s'    => \$blastn_task,
-      'g=s'    => \$gap_open,
-      'e=s'    => \$gap_extend,
       'v=s'    => \$num_descriptions,
       'b=s'    => \$num_alignments,
       'a=s'    => \$blast_num_cpu,
@@ -28,22 +25,19 @@ usage() unless (
 
 
 $min_percent_id = 80 unless defined $min_percent_id;
-$blastn_task = 'blastn' unless defined $blastn_task;
-$gap_open = 5 unless defined $gap_open;
-$gap_extend = 2 unless defined $gap_extend;
 $num_descriptions = 5 unless defined $num_descriptions;
 $num_alignments = 5 unless defined $num_alignments;
 $blast_num_cpu = 2 unless defined $blast_num_cpu;
 
-my ($makeblastdb, $blastn);
+my ($makeblastdb, $tblastx);
 $makeblastdb 			= '/usr/local/bin/makeblastdb';
-$blastn				= '/usr/local/bin/blastn';
+$tblastx			= '/usr/local/bin/tblastx';
 
 sub usage {
 
 die <<"USAGE";
 
-Usage: $0 -d target_infile -i query_infile -p min_percent_id -t blastn_task -g gap_open -e gap_extend -v num_descriptions -b num_alignments -a blast_num_cpu -o output_dir
+Usage: $0 -d target_infile -i query_infile -p min_percent_id -v num_descriptions -b num_alignments -a blast_num_cpu -o output_dir
 
 Description - 
 
@@ -54,12 +48,6 @@ OPTIONS:
       -i query_infile -
 
       -p min_percent_id 
-
-      -t blastn_task - 
-
-      -g gap_open - gap opening penalty (cost to open a gap).
-
-      -e gap_extend - gap extension penalty (cost to extend a gap).
 
       -v num_descriptions -
 
@@ -80,9 +68,9 @@ unless(-d $output_dir){
 
 my $fasta_query_name = fileparse($query_infile);
 my $fasta_target_name = fileparse($target_infile);
-my $blastn_filename = join('/', $output_dir, join("_", $fasta_query_name, $fasta_target_name . ".$blastn_task"));
+my $tblastx_filename = join('/', $output_dir, join("_", $fasta_query_name, $fasta_target_name . '.tblastx'));
 
-my $blastn_infile = generate_blastn($query_infile, $target_infile, $blastn_task, $gap_open, $gap_extend, $num_descriptions, $num_alignments, $min_percent_id, $blast_num_cpu, $blastn_filename);
+my $tblastx_infile = generate_tblastx($query_infile, $target_infile, $num_descriptions, $num_alignments, $min_percent_id, $blast_num_cpu, $tblastx_filename);
 
 my %query_annotations = ();
 
@@ -115,13 +103,13 @@ while(<INFILE>){
 }
 close(INFILE) or die "Couldn't close file $target_infile";
 
-warn "Generating blastn tsv file....\n";
-my $blastn_outfile = $blastn_filename . ".tsv";
-open(OUTFILE, ">$blastn_outfile") or die "Couldn't open file $blastn_outfile for writting, $!";
+warn "Generating tblastx tsv file....\n";
+my $tblastx_outfile = $tblastx_filename . ".tsv";
+open(OUTFILE, ">$tblastx_outfile") or die "Couldn't open file $tblastx_outfile for writting, $!";
 print OUTFILE join("\t", "query_name", "target_name", "percent_identity", "align_length", "num_mismatch", 
       "num_gaps", "query_start", "query_end", "target_start", "target_end", "e_value", "bit_score") . "\n"; 
-my $searchio = Bio::SearchIO->new(-file   => $blastn_infile,
-                                  -format => 'blast') or die "Error: Can't parse blast file $blastn_infile using SearchIO $!";
+my $searchio = Bio::SearchIO->new(-file   => $tblastx_infile,
+                                  -format => 'blast') or die "Error: Can't parse blast file $tblastx_infile using SearchIO $!";
 while(my $result = $searchio->next_result){
       while(my $hit = $result->next_hit){
 	    while(my $hsp = $hit->next_hsp){
@@ -162,7 +150,7 @@ while(my $result = $searchio->next_result){
 	    }
       }
 }
-close(OUTFILE) or die "Couldn't close file $blastn_outfile";
+close(OUTFILE) or die "Couldn't close file $tblastx_outfile";
 
 # makeblastdb -in ncbi_nr_db_2014-05-30_organisms.fasta -dbtype 'nucl' -out ncbi_nr_db_2014-05-30_organisms.fasta
 sub makeblastdb_nuc{
@@ -185,17 +173,11 @@ sub makeblastdb_nuc{
 
 }
 
-sub generate_blastn{
+sub generate_tblastx{
       my $fasta_query = shift;
       die "Error lost fasta query file" unless defined $fasta_query;
       my $fasta_target = shift;
       die "Error lost fasta database target file" unless defined $fasta_target;
-      my $blastn_task = shift;
-      die "Error lost blastn program task" unless defined $blastn_task;
-      my $gap_open = shift;
-      die "Error lost gap opening penalty" unless defined $gap_open;
-      my $gap_extend = shift;
-      die "Error lost gap extension penalty" unless defined $gap_extend;
       my $num_descriptions = shift;
       die "Error lost number of descriptions" unless defined $num_descriptions;
       my $num_alignments = shift;
@@ -204,31 +186,28 @@ sub generate_blastn{
       die "Error lost minimum percent identity" unless defined $min_percent_id;
       my $blast_num_cpu = shift;
       die "Error lost number of cpus to allocate" unless defined $blast_num_cpu;
-      my $blastn_filename = shift;
-      die "Error lost blastn output filename" unless defined $blastn_filename;
+      my $tblastx_filename = shift;
+      die "Error lost tblastx output filename" unless defined $tblastx_filename;
 
       makeblastdb_nuc($fasta_target);
 
-      my $blastn_outfile = $blastn_filename . ".aln";
-      unless(-s $blastn_outfile){
-	    warn "Generating blastn file....\n";
-	    my $blastnCmd  = "$blastn -query $fasta_query -db $fasta_target -task $blastn_task -gapopen $gap_open -gapextend $gap_extend -dust yes -num_descriptions $num_descriptions -num_alignments $num_alignments -evalue 1e-6 -out $blastn_outfile -num_threads $blast_num_cpu";
-	    warn $blastnCmd . "\n\n";
+      my $tblastx_outfile = $tblastx_filename . ".aln";
+      unless(-s $tblastx_outfile){
+	    warn "Generating tblastx file....\n";
+	    my $tblastxCmd  = "$tblastx -query $fasta_query -db $fasta_target -dust yes -num_descriptions $num_descriptions -num_alignments $num_alignments -evalue 1e-6 -out $tblastx_outfile -num_threads $blast_num_cpu";
+	    warn $tblastxCmd . "\n\n";
 
-	    my $status = system($blastn, 
+	    my $status = system($tblastx, 
 		  '-query', $fasta_query,
 		  '-db', $fasta_target,
-		  '-task', $blastn_task,
-		  '-gapopen', $gap_open,
-		  '-gapextend', $gap_extend,
 		  '-dust', 'yes',
 		  '-num_descriptions', $num_descriptions,
 		  '-num_alignments', $num_alignments,
 		  '-evalue', 1e-6,
-		  '-out', $blastn_outfile,
+		  '-out', $tblastx_outfile,
 		  '-num_threads', $blast_num_cpu
-	    ) == 0 or die "Error calling $blastn: $?";
+	    ) == 0 or die "Error calling $tblastx: $?";
 
       }
-      return $blastn_outfile;
+      return $tblastx_outfile;
 }

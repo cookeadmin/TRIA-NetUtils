@@ -100,7 +100,14 @@ foreach my $name_id (keys %blast_final_list){
       }
 }
 
-my $outfile = join('/', $output_dir, $blastn_filename . ".txt");
+# Get filename based on number of hits choosen.
+my $outfile = "";
+if($num_hits > 1){
+	$outfile = join('/', $output_dir, join("_", $blastn_filename, "top", $num_hits, "hits") . ".txt");
+}else{
+	$outfile = join('/', $output_dir, join("_", $blastn_filename, "top", "hits") . ".txt");
+}
+
 open(OUTFILE, ">$outfile") or die "Couldn't open file $outfile for writting, $!";
 print OUTFILE join("\t", "query_name", "target_name", "percent_identity	align_length", "num_mismatch", "num_gaps", "query_start	query_end", "target_start", "target_end", "e_value", "bit_score") . "\n";
 foreach my $name_id (sort {$a cmp $b} keys %blast_entries){

@@ -28,11 +28,8 @@ $min_percent_id = 80 unless defined $min_percent_id;
 $num_descriptions = 5 unless defined $num_descriptions;
 $num_alignments = 5 unless defined $num_alignments;
 
-# my ($formatdb, $blastall);
 my ($makeblastdb, $blastx);
-# $formatdb			= '/usr/bin/formatdb';
 $makeblastdb 			= '/usr/local/bin/makeblastdb';
-# $blastall			= '/usr/bin/blastall';
 $blastx				= '/usr/local/bin/blastx';
 
 sub usage {
@@ -108,8 +105,8 @@ my $blastx_outfile = $blastx_filename . ".tsv";
 open(OUTFILE, ">$blastx_outfile") or die "Couldn't open file $blastx_outfile for writting, $!";
 print OUTFILE join("\t", "query_name", "target_name", "percent_identity", "align_length", "num_mismatch", 
       "num_gaps", "query_start", "query_end", "target_start", "target_end", "e_value", "bit_score") . "\n"; 
-my $searchio = Bio::SearchIO->new(-file   => $blast_infile,
-                                  -format => 'blast') or die "Error: Can't parse blast file $blast_infile using SearchIO $!";
+my $searchio = Bio::SearchIO->new(-file   => $blastx_infile,
+                                  -format => 'blast') or die "Error: Can't parse blast file $blastx_infile using SearchIO $!";
 while(my $result = $searchio->next_result){
       while(my $hit = $result->next_hit){
 	    while(my $hsp = $hit->next_hsp){

@@ -28,11 +28,8 @@ $min_percent_id = 80 unless defined $min_percent_id;
 $num_descriptions = 5 unless defined $num_descriptions;
 $num_alignments = 5 unless defined $num_alignments;
 
-# my ($formatdb, $blastall);
 my ($makeblastdb, $blastp);
-# $formatdb			= '/usr/bin/formatdb';
 $makeblastdb 			= '/usr/local/bin/makeblastdb';
-# $blastall			= '/usr/bin/blastall';
 $blastp				= '/usr/local/bin/blastp';
 
 sub usage {
