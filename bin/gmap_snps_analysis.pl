@@ -13,16 +13,16 @@ use Switch;
 # perl gmap_snps_analysis.pl -s /home/cookeadmin/workspace/cathy/AllSNPsVariantConsensusPositions.txt -g /home/cookeadmin/workspace/cathy/AllSNPs_output_GMAP.parsed -q /home/cookeadmin/workspace/cathy/AllSNPsContigs.fa -o ~/workspace/cathy
 my ($snps_infile, $gmap_infile, $query_infile, $output_dir);
 GetOptions(
-'s=s'    => \$snps_infile,
-'g=s'    => \$gmap_infile,
-'q=s'    => \$query_infile,
-'o=s'    => \$output_dir,
+	's=s'    => \$snps_infile,
+	'g=s'    => \$gmap_infile,
+	'q=s'    => \$query_infile,
+	'o=s'    => \$output_dir,
 );
 usage() unless (
-defined $snps_infile
-and defined $gmap_infile
-and defined $query_infile
-and defined $output_dir
+	defined $snps_infile
+	and defined $gmap_infile
+	and defined $query_infile
+	and defined $output_dir
 );
 
 
@@ -35,6 +35,7 @@ Usage: $0 -s snps_infile -g gmap_infile -q query_infile -o output_dir
 Description - 
 
 OPTIONS:
+
 -s snps_infile - 
 
 -g gmap_infile - 
@@ -48,7 +49,7 @@ USAGE
 
 # Create output directory if it doesn't already exist.
 unless(-d $output_dir){
-mkdir($output_dir, 0777) or die "Can't make directory: $!";
+	mkdir($output_dir, 0777) or die "Can't make directory: $!";
 }
 
 # One thing I forgot to mention, is that some of the SNPs may represent paralogues, this is confirmed when the SNP site lines up to more than one loblolly contig with high probability (one of the reasons for using the loblolly data to do this)
@@ -82,7 +83,7 @@ my (%gmap_snps_output, @snps_positions_list, @gmap_snps_list, @snps_gmap_alignme
 # The entire SNP positions list to find the difference between the GMAP SNP positions list and the SNP positions list.
 @snps_positions_list = keys %{$snps_positions};
 
-foreach my $alignment_name (keys %{$gmap_alignments}){
+foreach my $alignment_name (sort keys %{$gmap_alignments}){
 	warn $alignment_name . "\n";
 	my @split_gmap_align_entry = split(/\t/, $gmap_alignments->{$alignment_name});
 	my ($coverage,$percent_identity,$matches,$mismatches,$indels,$unknowns,$query_id,$query_start,
@@ -96,18 +97,32 @@ foreach my $alignment_name (keys %{$gmap_alignments}){
 		$amino_acid_start,$amino_acid_end,$amino_acid_length,$amino_acid_changes,$num_exons,$query_align_block,
 		$target_align_block,$align_identity_block,$intron_length_block,$target_gap_position_list,
 		$query_gap_position_list,$mismatch_position_list) . "\n";
-		
-	my ($min_query_gap_position, $max_query_gap_position) = 0;
+	
+	# If we have any gaps within the query sequence we need to figure out if we need adjust the amino acid start or amino acid end position to fix the possibility of a frame shift 
+	# causing the amino acid sequence to be incorrect. 
+	# GMAP only evaluates where the amino acid translation starts in the target sequence, which may introduce a frame shift.
+	my $query_gap_amino_acid_range_counter = 0;
 	if($query_gap_position_list ne "N/A"){
 		my @query_gap_positions = split(/,/, $query_gap_position_list);
-		($min_query_gap_position, $max_query_gap_position) = (min(@query_gap_positions), max(@query_gap_positions));
+		foreach my $query_gap_position (@query_gap_positions){
+			$query_gap_amino_acid_range_counter++ if(($query_gap_position >= $amino_acid_start) and ($query_gap_position <= $amino_acid_end));
+		}
 	}
-	
-	my ($min_target_gap_position, $max_target_gap_position) = 0;
+
+	# If we have any gaps within the target sequence we need to figure out if we need adjust the amino acid start or amino acid end position to fix the possibility of a frame shift 
+	# causing the amino acid sequence to be incorrect. 
+	# GMAP only evaluates where the amino acid translation starts in the target sequence, which may introduce a frame shift.
+	my $target_gap_amino_acid_range_counter = 0;
 	if($target_gap_position_list ne "N/A"){
 		my @target_gap_positions = split(/,/, $target_gap_position_list);
-		($min_target_gap_position, $max_target_gap_position) = (min(@target_gap_positions), max(@target_gap_positions));
+		foreach my $target_gap_position (@target_gap_positions){
+			$target_gap_amino_acid_range_counter++ if(($target_gap_position >= $amino_acid_start) and ($target_gap_position <= $amino_acid_end));
+		}
 	}
+# 	die $target_gap_amino_acid_range_counter if(($query_strand eq "-") and ($target_gap_amino_acid_range_counter >= 1) and ($query_id eq "JackDenovo_rep_c1237"));
+# 		die join("; ", $query_id, $target_gap_amino_acid_range_counter, ($target_gap_amino_acid_range_counter % 3)) if(($query_strand eq "-") and (($target_gap_amino_acid_range_counter % 3) ne 0));
+
+	
 	
 	# Get the number of alignment paths and the current path number.
 	my ($path_num, $num_align_paths) = "";
@@ -137,7 +152,7 @@ foreach my $alignment_name (keys %{$gmap_alignments}){
 		# 		warn "$query_id\n" . join('', @query_subseq) . "\n";
 		# 		warn "$query_id\n$aa_seq\n";
 		# 		warn join("\t", $amino_acid_start, $amino_acid_end) . "\n";
-				foreach my $snps_entry (@{$snps_positions->{$query_id}}){
+				foreach my $snps_entry (sort @{$snps_positions->{$query_id}}){
 					warn $snps_entry . "\n";
 					my ($snp_position, $snp_variants) = split(/\t/, $snps_entry);
 
@@ -218,7 +233,10 @@ foreach my $alignment_name (keys %{$gmap_alignments}){
 		# 		warn $gmap_alignments->{$alignment_name} . "\n";
 				warn $query_id . "\n";
 				
+# 				$amino_acid_start = ($amino_acid_start + (($target_gap_amino_acid_range_counter % 3) - ($query_gap_amino_acid_range_counter % 3))) if(($target_gap_amino_acid_range_counter % 3) ne 0);
 				
+# 				die join("; ", $query_id, $target_gap_amino_acid_range_counter, ($target_gap_amino_acid_range_counter % 3)) if(($query_strand eq "-") and (($target_gap_amino_acid_range_counter % 3) ne 0));
+
 				my @query_subseq = split('', get_subseq($query_seqs->{$query_id}, $amino_acid_start, $amino_acid_end));
 
 				my $query_subsequence = join('', @query_subseq);
@@ -227,7 +245,7 @@ foreach my $alignment_name (keys %{$gmap_alignments}){
 		# 		warn "$query_id\n" . join('', @query_subseq) . "\n";
 		# 		warn "$query_id\n$aa_seq\n";
 		# 		warn join("\t", $amino_acid_start, $amino_acid_end) . "\n";
-				foreach my $snps_entry (@{$snps_positions->{$query_id}}){
+				foreach my $snps_entry (sort @{$snps_positions->{$query_id}}){
 					warn $snps_entry . "\n";
 					my ($snp_position, $snp_variants) = split(/\t/, $snps_entry);
 
@@ -321,7 +339,7 @@ foreach my $alignment_name (keys %{$gmap_alignments}){
 		# 		warn "$query_id\n" . join('', @query_subseq) . "\n";
 		# 		warn "$query_id\n$aa_seq\n";
 				warn join("\t", $amino_acid_start, $amino_acid_end) . "\n";
-				foreach my $snps_entry (@{$snps_positions->{$query_id}}){
+				foreach my $snps_entry (sort @{$snps_positions->{$query_id}}){
 					warn $snps_entry . "\n";
 					my ($snp_position, $snp_variants) = split(/\t/, $snps_entry);
 					warn "($snp_position >= $query_start) and ($snp_position <= $query_end)" unless (($snp_position >= $query_start) and ($snp_position <= $query_end));
