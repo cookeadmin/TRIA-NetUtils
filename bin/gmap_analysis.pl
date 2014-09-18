@@ -167,9 +167,9 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 							my @snp_variants_list_entries = split(/\//, $snp_variants_list);
 							my $num_snp_variants = scalar(@snp_variants_list_entries);
 							if($num_snp_variants eq 3){
-								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS","Complex", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
+								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS","Complex", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
 							}else{
-								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
+								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
 							}
 						}elsif($snp_position < $amino_acid_start){
 							warn "5 PRIME UTR\n";
@@ -184,11 +184,11 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 
 							my ($snp_variant1, $snp_variant2) = split(/\//, $snp_variants);
 							if(($snp_base eq $snp_variant1) or ($snp_base eq $snp_variant2)){
-								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,$target_id,$five_prime_UTR_start,$five_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
 							}elsif(($snp_base ne $snp_variant1) and ($snp_base ne $snp_variant2)){
 								my $snp_variant3 = $snp_base;
 								my $complex_snp_variants = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", "Complex", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", "Complex", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,$target_id,$five_prime_UTR_start,$five_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
 							}
 						}
 						elsif($snp_position > $amino_acid_end){
@@ -204,11 +204,11 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 
 							my ($snp_variant1, $snp_variant2) = split(/\//, $snp_variants);
 							if(($snp_base eq $snp_variant1) or ($snp_base eq $snp_variant2)){
-								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,$target_id,$three_prime_UTR_start,$three_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
 							}elsif(($snp_base ne $snp_variant1) and ($snp_base ne $snp_variant2)){
 								my $snp_variant3 = $snp_base;
 								my $complex_snp_variants = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", "Complex", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", "Complex", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,$target_id,$three_prime_UTR_start,$three_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
 							}
 						}
 					}else{ 
@@ -219,11 +219,11 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 						my $snp_base = $query_seq[$snp_position - 1];
 						my ($snp_variant1, $snp_variant2) = split(/\//, $snp_variants);
 						if(($snp_base eq $snp_variant1) or ($snp_base eq $snp_variant2)){
-							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", $snp_type),$query_start,$query_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
+							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", $snp_type),$query_start,$query_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
 						}elsif(($snp_base ne $snp_variant1) and ($snp_base ne $snp_variant2)){
 							my $snp_variant3 = $snp_base;
 							my $complex_snp_variants = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", "Complex", $snp_type),$query_start,$query_end,$query_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
+							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", "Complex", $snp_type),$query_start,$query_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
 						}
 					}
 				}
@@ -266,9 +266,9 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 							my @snp_variants_list_entries = split(/\//, $snp_variants_list);
 							my $num_snp_variants = scalar(@snp_variants_list_entries);
 							if($num_snp_variants eq 3){
-								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS", "Complex", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
+								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS", "Complex", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
 							}else{
-								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
+								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
 							}
 							
 						}
@@ -288,11 +288,11 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 							($snp_variant1, $snp_variant2) = (get_comp_base($snp_variant1), get_comp_base($snp_variant2)) if($query_strand eq "-");
 							$snp_variants = join("/", $snp_variant1, $snp_variant2) if($query_strand eq "-");
 							if(($snp_base eq $snp_variant1) or ($snp_base eq $snp_variant2)){
-								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,$target_id,$five_prime_UTR_start,$five_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
 							}elsif(($snp_base ne $snp_variant1) and ($snp_base ne $snp_variant2)){
 								my $snp_variant3 = $snp_base;
 								my $complex_snp_variants = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", "Complex", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", "Complex", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,$target_id,$five_prime_UTR_start,$five_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
 							}
 						}
 						elsif($snp_position < $amino_acid_start){
@@ -311,11 +311,11 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 							($snp_variant1, $snp_variant2) = (get_comp_base($snp_variant1), get_comp_base($snp_variant2)) if($query_strand eq "-");
 							$snp_variants = join("/", $snp_variant1, $snp_variant2) if($query_strand eq "-");
 							if(($snp_base eq $snp_variant1) or ($snp_base eq $snp_variant2)){
-								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,$target_id,$three_prime_UTR_start,$three_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
 							}elsif(($snp_base ne $snp_variant1) and ($snp_base ne $snp_variant2)){
 								my $snp_variant3 = $snp_base;
 								my $complex_snp_variants = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", "Complex", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", "Complex", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,$target_id,$three_prime_UTR_start,$three_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
 							}
 						}
 					}else{ 
@@ -326,11 +326,11 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 						my $snp_base = $query_seq[$snp_position - 1];
 						my ($snp_variant1, $snp_variant2) = split(/\//, $snp_variants);
 						if(($snp_base eq $snp_variant1) or ($snp_base eq $snp_variant2)){
-							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", $snp_type),$query_start,$query_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
+							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", $snp_type),$query_start,$query_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
 						}elsif(($snp_base ne $snp_variant1) and ($snp_base ne $snp_variant2)){
 							my $snp_variant3 = $snp_base;
 							my $complex_snp_variants = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", "Complex", $snp_type),$query_start,$query_end,$query_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
+							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", "Complex", $snp_type),$query_start,$query_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
 						}
 					}
 				}
@@ -360,9 +360,9 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 							my @snp_variants_list_entries = split(/\//, $snp_variants_list);
 							my $num_snp_variants = scalar(@snp_variants_list_entries);
 							if($num_snp_variants eq 3){
-								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS","Complex", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
+								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS","Complex", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
 							}else{
-								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
+								push(@{$gmap_snps_output{$alignment_name}{"CDS"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "CDS", $snp_type),$amino_acid_start,$amino_acid_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants_list]","codons=[$codon_list]","substitution=[$amino_acid_list]","type=$substitution_type","sequence=$amino_acid_sequence")));
 							}
 						}elsif($snp_position < $amino_acid_start){
 							warn "5 PRIME UTR\n";
@@ -376,11 +376,11 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 							my $snp_base = $query_seq[$snp_position - 1];
 							my ($snp_variant1, $snp_variant2) = split(/\//, $snp_variants);
 							if(($snp_base eq $snp_variant1) or ($snp_base eq $snp_variant2)){
-								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,$target_id,$five_prime_UTR_start,$five_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
 							}elsif(($snp_base ne $snp_variant1) and ($snp_base ne $snp_variant2)){
 								my $snp_variant3 = $snp_base;
 								my $complex_snp_variants = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", "Complex", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"five_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "five_prime_UTR", "Complex", $snp_type),$query_start,($amino_acid_start - 1),$query_strand,$target_id,$five_prime_UTR_start,$five_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
 							}
 						}
 						elsif($snp_position > $amino_acid_end){
@@ -395,11 +395,11 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 							my $snp_base = $query_seq[$snp_position - 1];
 							my ($snp_variant1, $snp_variant2) = split(/\//, $snp_variants);
 							if(($snp_base eq $snp_variant1) or ($snp_base eq $snp_variant2)){
-								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,$target_id,$three_prime_UTR_start,$three_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
 							}elsif(($snp_base ne $snp_variant1) and ($snp_base ne $snp_variant2)){
 								my $snp_variant3 = $snp_base;
 								my $complex_snp_variants = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", "Complex", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
+								push(@{$gmap_snps_output{$alignment_name}{"three_prime_UTR"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "three_prime_UTR", "Complex", $snp_type),($amino_acid_end + 1),$query_end,$query_strand,$target_id,$three_prime_UTR_start,$three_prime_UTR_end,$target_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
 							}
 						}
 					}else{ 
@@ -410,11 +410,11 @@ foreach my $alignment_name (sort keys %{$gmap_alignments}){
 						my $snp_base = $query_seq[$snp_position - 1];
 						my ($snp_variant1, $snp_variant2) = split(/\//, $snp_variants);
 						if(($snp_base eq $snp_variant1) or ($snp_base eq $snp_variant2)){
-							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", $snp_type),$query_start,$query_end,$query_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
+							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", $snp_type),$query_start,$query_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$snp_variants]")));
 						}elsif(($snp_base ne $snp_variant1) and ($snp_base ne $snp_variant2)){
 							my $snp_variant3 = $snp_base;
 							my $complex_snp_variants = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", "Complex", $snp_type),$query_start,$query_end,$query_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
+							push(@{$gmap_snps_output{$alignment_name}{"Noncoding"}}, join("\t",$alignment_name,$coverage,$percent_identity,$query_id,join("_", "Noncoding", "Complex", $snp_type),$query_start,$query_end,$query_strand,$target_id,$target_start,$target_end,$target_strand,join(";", "position=$snp_position","variants=[$complex_snp_variants]")));
 						}
 					}
 		# 			      
@@ -436,7 +436,8 @@ my $snp_filename = fileparse($gmap_infile, qr/\.[^.]*/);
 my $snps_outfile = join('/', $output_dir, join("_", $snp_filename, "snps_outfile.txt"));
 warn "Writting the find GMAP snps outfile to $snps_outfile.....\n";
 open(OUTFILE, ">$snps_outfile") or die "Couldn't open file $snps_outfile for writting, $!";                          
-print OUTFILE join("\t", "alignment_name","coverage","percent_identity","query_id","snp_type","query_start","query_end","query_strand","snp_description") . "\n";
+print OUTFILE join("\t", "alignment_name","coverage","percent_identity","query_id","snp_type","query_start","query_end","query_strand","target_id","target_start",
+		"target_end","target_strand","snp_description") . "\n";
 foreach my $alignment_name (sort keys %gmap_snps_output){
 	foreach my $gene_structure (@gene_structures){
 		foreach my $gmap_snps_output_entry (@{$gmap_snps_output{$alignment_name}{$gene_structure}}){
@@ -712,16 +713,16 @@ sub get_aa_codon_snp{
 				$snp_codon_variant2 = join('', @snp_codon_bases);
 				($amino_acid1, $amino_acid2) = (convert_codon($snp_codon_variant1), convert_codon($snp_codon_variant2));
 				if($amino_acid1 eq $amino_acid2){
-					$substitution_type = "synonymous";
+				$substitution_type = "synonymous";
 				}else{
-					$substitution_type = "nonsynonymous";
+				$substitution_type = "nonsynonymous";
 				}
 				$codon_list = join("/", $snp_codon_variant1, $snp_codon_variant2);
 				$amino_acid_list = join("/", $amino_acid1, $amino_acid2);
 				my @split_amino_acid_list = split(/\//, $amino_acid_list);
 				my @converted_aa_bases = ();
 				foreach my $aa_base (@split_amino_acid_list){
-					push(@converted_aa_bases, join("=", $aa_base, convert_aa_base($aa_base)));
+				push(@converted_aa_bases, convert_aa_base($aa_base));
 				}
 				$amino_acid_list = join("/", @converted_aa_bases);
 				
@@ -732,16 +733,16 @@ sub get_aa_codon_snp{
 				$snp_codon_variant2 = join('', @snp_codon_bases);
 				($amino_acid1, $amino_acid2) = (convert_codon($snp_codon_variant1), convert_codon($snp_codon_variant2));
 				if($amino_acid1 eq $amino_acid2){
-					$substitution_type = "synonymous";
+				$substitution_type = "synonymous";
 				}else{
-					$substitution_type = "nonsynonymous";
+				$substitution_type = "nonsynonymous";
 				}
 				$codon_list = join("/", $snp_codon_variant1, $snp_codon_variant2);
 				$amino_acid_list = join("/", $amino_acid1, $amino_acid2);
 				my @split_amino_acid_list = split(/\//, $amino_acid_list);
 				my @converted_aa_bases = ();
 				foreach my $aa_base (@split_amino_acid_list){
-					push(@converted_aa_bases, join("=", $aa_base, convert_aa_base($aa_base)));
+				push(@converted_aa_bases, convert_aa_base($aa_base));
 				}
 				$amino_acid_list = join("/", @converted_aa_bases);
 
@@ -756,16 +757,16 @@ sub get_aa_codon_snp{
 				($amino_acid1, $amino_acid2, $amino_acid3) = (convert_codon($snp_codon_variant1), convert_codon($snp_codon_variant2), convert_codon($snp_codon_variant3));
 
 				if(($amino_acid1 eq $amino_acid3) or ($amino_acid2 eq $amino_acid3)){
-					$substitution_type = "synonymous";
+				$substitution_type = "synonymous";
 				}else{
-					$substitution_type = "nonsynonymous";
+				$substitution_type = "nonsynonymous";
 				}
 				$codon_list = join("/", $snp_codon_variant1, $snp_codon_variant2, $snp_codon_variant3);
 				$amino_acid_list = join("/", $amino_acid1, $amino_acid2, $amino_acid3);
 				my @split_amino_acid_list = split(/\//, $amino_acid_list);
 				my @converted_aa_bases = ();
 				foreach my $aa_base (@split_amino_acid_list){
-					push(@converted_aa_bases, join("=", $aa_base, convert_aa_base($aa_base)));
+				push(@converted_aa_bases, convert_aa_base($aa_base));
 				}
 				$amino_acid_list = join("/", @converted_aa_bases);
 				$snp_variants_list = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
@@ -786,111 +787,15 @@ sub get_aa_codon_snp{
 		$aa_sequence .= convert_codon($codon);
 		$amino_acid_position++;
 	}
-
-	if($adj_snp_position eq (length($dna_sequence) - 1)){
-		my $snp_codon_position = 2;
-		my @split_dna_sequence = split('', $dna_sequence);
-		$snp_codon_position = abs($snp_codon_position - 2) if($query_strand eq "-");
-
-		my $snp_codon = substr($dna_sequence, ($#split_dna_sequence - 3), 3);
-# 		  warn "BEFORE minus strand change " . $snp_codon . "\n";
-
-		$snp_codon = reverse_complement($snp_codon) if($query_strand eq "-");
-# 		  warn "AFTER minus strand change " . $snp_codon . "\n";
-
-		my @snp_codon_bases = split('', $snp_codon);
-		
-		warn "snp_variant1 $snp_variant1 eq $snp_codon_bases[$snp_codon_position]\n";
-		warn "snp_variant2 $snp_variant2 eq $snp_codon_bases[$snp_codon_position]\n";
-
-		my ($snp_codon_variant1, $snp_codon_variant2, $snp_codon_variant3) = "";
-		my ($amino_acid1, $amino_acid2, $amino_acid3) = "";
-
-		if($snp_variant1 eq $snp_codon_bases[$snp_codon_position]){
-			warn "$snp_variant1 eq $snp_codon_bases[$snp_codon_position]\n";
-			$snp_codon_variant1 = $snp_codon;
-			$snp_codon_bases[$snp_codon_position] = $snp_variant2;
-			$snp_codon_variant2 = join('', @snp_codon_bases);
-			($amino_acid1, $amino_acid2) = (convert_codon($snp_codon_variant1), convert_codon($snp_codon_variant2));
-			if($amino_acid1 eq $amino_acid2){
-				$substitution_type = "synonymous";
-			}else{
-				$substitution_type = "nonsynonymous";
-			}
-			$codon_list = join("/", $snp_codon_variant1, $snp_codon_variant2);
-			$amino_acid_list = join("/", $amino_acid1, $amino_acid2);
-			my @split_amino_acid_list = split(/\//, $amino_acid_list);
-			my @converted_aa_bases = ();
-			foreach my $aa_base (@split_amino_acid_list){
-				push(@converted_aa_bases, join("=", $aa_base, convert_aa_base($aa_base)));
-			}
-			$amino_acid_list = join("/", @converted_aa_bases);
-			
-		}elsif($snp_variant2 eq $snp_codon_bases[$snp_codon_position]){
-			warn "$snp_variant2 eq $snp_codon_bases[$snp_codon_position]\n";
-			$snp_codon_variant1 = $snp_codon;
-			$snp_codon_bases[$snp_codon_position] = $snp_variant1;
-			$snp_codon_variant2 = join('', @snp_codon_bases);
-			($amino_acid1, $amino_acid2) = (convert_codon($snp_codon_variant1), convert_codon($snp_codon_variant2));
-			if($amino_acid1 eq $amino_acid2){
-				$substitution_type = "synonymous";
-			}else{
-				$substitution_type = "nonsynonymous";
-			}
-			$codon_list = join("/", $snp_codon_variant1, $snp_codon_variant2);
-			$amino_acid_list = join("/", $amino_acid1, $amino_acid2);
-			my @split_amino_acid_list = split(/\//, $amino_acid_list);
-			my @converted_aa_bases = ();
-			foreach my $aa_base (@split_amino_acid_list){
-				push(@converted_aa_bases, join("=", $aa_base, convert_aa_base($aa_base)));
-			}
-			$amino_acid_list = join("/", @converted_aa_bases);
-
-		}else{ # complex/indeterminate snp
-			
-			my $snp_variant3 = $snp_codon_bases[$snp_codon_position];
-			$snp_codon_variant3 = $snp_codon;
-			$snp_codon_bases[$snp_codon_position] = $snp_variant1;
-			$snp_codon_variant1 = join('', @snp_codon_bases);
-			$snp_codon_bases[$snp_codon_position] = $snp_variant2;
-			$snp_codon_variant2 = join('', @snp_codon_bases);
-			($amino_acid1, $amino_acid2, $amino_acid3) = (convert_codon($snp_codon_variant1), convert_codon($snp_codon_variant2), convert_codon($snp_codon_variant3));
-
-			if(($amino_acid1 eq $amino_acid3) or ($amino_acid2 eq $amino_acid3)){
-				$substitution_type = "synonymous";
-			}else{
-				$substitution_type = "nonsynonymous";
-			}
-			$codon_list = join("/", $snp_codon_variant1, $snp_codon_variant2, $snp_codon_variant3);
-			$amino_acid_list = join("/", $amino_acid1, $amino_acid2, $amino_acid3);
-			my @split_amino_acid_list = split(/\//, $amino_acid_list);
-			my @converted_aa_bases = ();
-			foreach my $aa_base (@split_amino_acid_list){
-				push(@converted_aa_bases, join("=", $aa_base, convert_aa_base($aa_base)));
-			}
-			$amino_acid_list = join("/", @converted_aa_bases);
-			$snp_variants_list = join("/", $snp_variant1, $snp_variant2, $snp_variant3);
-		}
-	}
-	
 	my @split_aa_sequence = split('', $aa_sequence);
-	$subsitution_position = $#split_aa_sequence if($adj_snp_position eq (length($dna_sequence) - 1));
 	my $amino_acid_base = $split_aa_sequence[$subsitution_position];
-
 	$split_aa_sequence[$subsitution_position] = "[$amino_acid_base]";
 	$split_aa_sequence[$subsitution_position] = "]" . $amino_acid_base. "[" if($query_strand eq "-");
 
 	my $amino_acid_sequence = join('', @split_aa_sequence);
 	$amino_acid_sequence = reverse($amino_acid_sequence) if($query_strand eq "-");
-	if($query_strand eq "-"){
-		my @split_snp_variants = split(/\//, $snp_variants);
-		for(my $i = 0; $i < scalar(@split_snp_variants); $i++){
- 			$split_snp_variants[$i] = get_comp_base($split_snp_variants[$i]);
-		}
-		$snp_variants = join("/", @split_snp_variants);
-	}
 	$snp_variants_list = $snp_variants unless(defined($snp_variants_list));
-	
+
 	return ($snp_variants_list, $codon_list, $amino_acid_list, $substitution_type, $amino_acid_sequence);
 }
 

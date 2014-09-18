@@ -88,10 +88,7 @@ system($pg_dump,
       '-f', $sqlfile
 ) == 0 or die "Error executing pg_dump: $?";
 
-
-
-chdir($webapp_dir) or die "Error chdir to $webapp_dir $!";
-mongrel_stop($webapp_dir);
+maintenance_stop($website_name, $webapp_dir);
 
 warn "Connecting to database $db_name\n";
 
@@ -806,7 +803,7 @@ for(my $i = 0; $i < $row_counter; $i++){
 
 warn "Disconnecting from database $db_name\n";
 my $rc = $dbh->disconnect() or die "Unable to disconnect: $DBI::errstr\n";
-mongrel_start($webapp_dir);
+maintenance_stop($website_name, $webapp_dir);
 
 sub find_files {
 	my $dir = shift;
@@ -824,57 +821,48 @@ sub find_files {
 	return \%files;
 }
 
+sub maintenance_start{	
 
-sub mongrel_start{	
+	my $website_name = shift;
+	die "Error lost input file directory" unless defined $website_name;
+	my $webapp_dir = shift;
+	die "Error lost input file directory" unless defined $webapp_dir;
 
-      my $website_name = shift;
-      die "Error lost input file directory" unless defined $website_name;
-
-      warn "Starting server for $website_name....\n";
-      my $mongrel_rails_start_cmd  = "mongrel_rails cluster::start";
-      warn $mongrel_rails_start_cmd . "\n\n";
-
-      local (*MONGREL_OUT, *MONGREL_IN, *MONGREL_ERR);
-      my $pid = open3(\*MONGREL_IN, \*MONGREL_OUT, \*MONGREL_ERR, $mongrel_rails_start_cmd) or die "Error calling open3 for mongrel process start: $!";
-      close MONGREL_IN or die "Error closing STDIN to mongrel process start: $!";	
-
-      while (<MONGREL_OUT>){ 
-	    chomp $_;
-	    warn $_ . "\n";
-      }
-      close MONGREL_OUT or die "Error closing STDOUT from mongrel process start: $!";
-
-      while (<MONGREL_ERR>){ 
-	    chomp $_;
-	    warn $_ . "\n";
-      }
-      close MONGREL_ERR or die "Error closing STERR from mongrel process start: $!";
-      wait;
+	warn "Starting maintenance for $website_name....\n";
+	my $outfile = join('/', $webapp_dir, "tmp", "maintenance.html");
+	open(OUTFILE, ">$outfile") or die "Couldn't open file $outfile for writting, $!";
+	print OUTFILE <<"EOF";
+    
+	<html>
+		<head>
+		<title>$webapp_name is temporarily unavailable</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<style>
+			body { text-align: center; padding: 150px; }
+			h1 { font-size: 50px; }
+			body { font: 20px Helvetica, sans-serif; color: #333; }
+			article { display: block; text-align: center; width: 650px; margin: 0 auto; }
+		</style>
+		</head>
+		<body>
+			<article>
+				<h1>$webapp_name is temporarily unavailable.</h1>
+				<p>We are currently performing a bulk upload of LIMS samples and will be back online shortly.</p>
+			</article>
+		</body>
+	</html>
+    
+EOF
+	close(OUTFILE) or die "Couldn't close file $outfile"; 
 }
 
-sub mongrel_stop{
+sub maintenance_stop{
 
-      my $website_name = shift;
-      die "Error lost input file directory" unless defined $website_name;
+	my $website_name = shift;
+	die "Error lost the website name" unless defined $website_name;
 
-      warn "Stopping server for $website_name....\n";
-      my $mongrel_rails_stop_cmd  = "mongrel_rails cluster::stop";
-      warn $mongrel_rails_stop_cmd . "\n\n";
+	warn "Stopping maintenance for $website_name....\n";
 
-      local (*MONGREL_OUT, *MONGREL_IN, *MONGREL_ERR);
-      my $pid = open3(\*MONGREL_IN, \*MONGREL_OUT, \*MONGREL_ERR, $mongrel_rails_stop_cmd) or die "Error calling open3 for mongrel process stop: $!";
-      close MONGREL_IN or die "Error closing STDIN to mongrel process stop: $!";	
-
-      while (<MONGREL_OUT>){ 
-	    chomp $_;
-	    warn $_ . "\n";
-      }
-      close MONGREL_OUT or die "Error closing STDOUT from mongrel process stop: $!";
-
-      while (<MONGREL_ERR>){ 
-	    chomp $_;
-	    warn $_ . "\n";
-      }
-      close MONGREL_ERR or die "Error closing STERR from mongrel process stop: $!";
-      wait;
+	my $outfile = join('/', $webapp_dir, "tmp", "maintenance.html");
+	unlink $outfile or warn "Could not unlink $outfile: $!";
 }
