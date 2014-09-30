@@ -52,8 +52,8 @@ while(<INFILE>){
 	    my $name_id = $split_query_id[0];
 
 	    # fix < 1e-179 so that we can sort by evalue numerically
-	    if($split_row_entry[10] =~ m/< 1e-179/){
-		  $split_row_entry[10] = "1e-179";
+	    if($split_row_entry[11] =~ m/< 1e-179/){
+		  $split_row_entry[11] = "1e-179";
 	    }
 
 	    my $blast_entry = join("\t", @split_row_entry);
@@ -75,7 +75,7 @@ foreach my $name_id (sort keys %blast_annotations){
       my $hits_counter = 1;
       if(defined(@{$blast_annotations{$name_id}})){
       
-	    my @blast_annotation_sorted = sort {$b->[11] <=> $a->[11]} @{$blast_annotations{$name_id}};
+	    my @blast_annotation_sorted = sort {$b->[12] <=> $a->[12]} @{$blast_annotations{$name_id}};
       
 	    foreach my $blast_annotation_entry (@blast_annotation_sorted){
 		  
@@ -109,13 +109,13 @@ if($num_hits > 1){
 }
 
 open(OUTFILE, ">$outfile") or die "Couldn't open file $outfile for writting, $!";
-print OUTFILE join("\t", "query_name", "target_name", "percent_identity	align_length", "num_mismatch", "num_gaps", "query_start	query_end", "target_start", "target_end", "e_value", "bit_score") . "\n";
+print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "align_length", "num_mismatch", "num_gaps", "query_start	query_end", "target_start", "target_end", "e_value", "bit_score") . "\n";
 foreach my $name_id (sort {$a cmp $b} keys %blast_entries){
-      foreach my $blast_entry (sort {$b->[11] <=> $a->[11]} @{$blast_entries{$name_id}}){
+      foreach my $blast_entry (sort {$b->[12] <=> $a->[12]} @{$blast_entries{$name_id}}){
 	    warn join("\t", @$blast_entry) . "\n";
 
-	    my ($query_name,$target_name,$percent_identity,$align_length,$num_mismatch,$num_gaps,$query_start,$query_end,$target_start,$target_end,$e_value,$bit_score) = @$blast_entry;
-	    print OUTFILE join("\t", $query_name,$target_name,$percent_identity,$align_length,$num_mismatch,$num_gaps,$query_start,$query_end,$target_start,$target_end,$e_value,$bit_score) . "\n";
+	    my ($query_name,$target_name,$query_coverage,$percent_identity,$align_length,$num_mismatch,$num_gaps,$query_start,$query_end,$target_start,$target_end,$e_value,$bit_score) = @$blast_entry;
+	    print OUTFILE join("\t", $query_name,$target_name,$query_coverage,$percent_identity,$align_length,$num_mismatch,$num_gaps,$query_start,$query_end,$target_start,$target_end,$e_value,$bit_score) . "\n";
 
       }
 }
