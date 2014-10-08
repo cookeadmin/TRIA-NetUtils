@@ -29,7 +29,7 @@ $min_percent_id = 80 unless defined $min_percent_id;
 $num_descriptions = 5 unless defined $num_descriptions;
 $num_alignments = 5 unless defined $num_alignments;
 $blast_num_cpu = 2 unless defined $blast_num_cpu;
-$output_fmt = 'all';
+$output_fmt = 'all' unless defined $output_fmt;
 
 my ($makeblastdb, $tblastx);
 $makeblastdb 			= '/usr/local/bin/makeblastdb';
@@ -121,7 +121,7 @@ sub generate_tblastx{
 		my $tblastx_outfile = $tblastx_filename . ".tsv";
 		unless(-s $tblastx_outfile){
 			warn "Generating tblastx tab-delimited file....\n";
-			my $tblastxCmd  = "$tblastx -query $fasta_query -db $fasta_target -seg yes -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovs pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
+			my $tblastxCmd  = "$tblastx -query $fasta_query -db $fasta_target -seg yes -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovhsp pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
 			warn $tblastxCmd . "\n\n";
 			
 			open(OUTFILE, ">$tblastx_outfile") or die "Couldn't open file $tblastx_outfile for writting, $!";

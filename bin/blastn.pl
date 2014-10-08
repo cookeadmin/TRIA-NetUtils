@@ -35,11 +35,15 @@ $gap_extend = 2 unless defined $gap_extend;
 $num_descriptions = 25 unless defined $num_descriptions;
 $num_alignments = 25 unless defined $num_alignments;
 $blast_num_cpu = 2 unless defined $blast_num_cpu;
-$output_fmt = 'all';
+$output_fmt = 'all' unless defined $output_fmt;
 
 my ($makeblastdb, $blastn);
-$makeblastdb 			= '/usr/local/bin/makeblastdb';
-$blastn				= '/usr/local/bin/blastn';
+
+$makeblastdb 			= '/usr/bin/makeblastdb';
+$blastn				= '/usr/bin/blastn';
+
+# $makeblastdb 			= '/usr/local/bin/makeblastdb';
+# $blastn				= '/usr/local/bin/blastn';
 
 sub usage {
 
@@ -140,7 +144,7 @@ sub generate_blastn{
 		my $blastn_outfile = $blastn_filename . ".tsv";
 		unless(-s $blastn_outfile){
 			warn "Generating blastn tab-delimited file....\n";
-			my $blastnCmd  = "$blastn -query $fasta_query -db $fasta_target -task $blastn_task -gapopen $gap_open -gapextend $gap_extend -dust yes -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovs pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
+			my $blastnCmd  = "$blastn -query $fasta_query -db $fasta_target -task $blastn_task -gapopen $gap_open -gapextend $gap_extend -dust yes -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovhsp pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
 			warn $blastnCmd . "\n\n";
 			
 			open(OUTFILE, ">$blastn_outfile") or die "Couldn't open file $blastn_outfile for writting, $!";

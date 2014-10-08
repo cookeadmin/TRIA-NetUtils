@@ -24,11 +24,12 @@ usage() unless (
       and defined $output_dir
 );
 
+
+$output_fmt = 'all' unless defined $output_fmt;
 $blast_num_cpu = 2 unless defined $blast_num_cpu;
 $min_percent_id = 80 unless defined $min_percent_id;
 $num_descriptions = 5 unless defined $num_descriptions;
 $num_alignments = 5 unless defined $num_alignments;
-$output_fmt = 'all';
 
 my ($makeblastdb, $blastx);
 $makeblastdb 			= '/usr/local/bin/makeblastdb';
@@ -72,7 +73,7 @@ my $fasta_query_name = fileparse($query_infile);
 my $fasta_target_name = fileparse($target_infile);
 my $blastx_filename = join('/', $output_dir, join("_", $fasta_query_name, $fasta_target_name . '.blastx'));
 
-my $blastx_infile = generate_blastx($query_infile, $target_infile, $min_percent_id, $num_descriptions, $num_alignments, $blastx_filename);
+my $blastx_infile = generate_blastx($query_infile, $target_infile, $min_percent_id, $num_descriptions, $num_alignments, $output_fmt,$blastx_filename);
 
 # makeblastdb -in ncbi_nr_db_2014-05-30_organisms.fasta -dbtype 'prot' -out ncbi_nr_db_2014-05-30_organisms.fasta
 sub makeblastdb_pep{
@@ -106,7 +107,7 @@ sub generate_blastx{
 	my $num_alignments = shift;
 	die "Error lost number of alignments" unless defined $num_alignments;
 	my $output_fmt = shift;
-	die "Error lost blastn output format" unless defined $output_fmt;
+	die "Error lost blastx output format" unless defined $output_fmt;
 	my $blastx_filename = shift;
 	die "Error lost blastx output filename" unless defined $blastx_filename;
 
@@ -117,14 +118,14 @@ sub generate_blastx{
 		my $blastx_outfile = $blastx_filename . ".tsv";
 		unless(-s $blastx_outfile){
 			warn "Generating blastx tab-delimited file....\n";
-			my $blastxCmd  = "$blastx -query $fasta_query -db $fasta_target -seg no -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovs pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
+			my $blastxCmd  = "$blastx -query $fasta_query -db $fasta_target -seg no -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovhsp pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
 			warn $blastxCmd . "\n\n";
 			
 			open(OUTFILE, ">$blastx_outfile") or die "Couldn't open file $blastx_outfile for writting, $!";
 			print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "align_length", "num_mismatch", 
 			"num_gaps", "query_start", "query_end", "target_start", "target_end", "e_value", "bit_score") . "\n"; 
 			local (*BLASTX_OUT, *BLASTX_IN);
-			my  $pid = open2(\*BLASTX_OUT,\*BLASTX_IN, $tblastxCmd) or die "Error calling open2: $!";
+			my  $pid = open2(\*BLASTX_OUT,\*BLASTX_IN, $blastxCmd) or die "Error calling open2: $!";
 			close BLASTX_IN or die "Error closing STDIN to blastx process: $!";
 			while(<BLASTX_OUT>){
 				chomp $_;

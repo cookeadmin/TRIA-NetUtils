@@ -50,11 +50,7 @@ while(<INFILE>){
 	    my $query_id = $split_row_entry[0];
 	    my @split_query_id = split("\001", $query_id);
 	    my $name_id = $split_query_id[0];
-
-	    # fix < 1e-179 so that we can sort by evalue numerically
-	    if($split_row_entry[11] =~ m/< 1e-179/){
-		  $split_row_entry[11] = "1e-179";
-	    }
+	    
 
 	    my $blast_entry = join("\t", @split_row_entry);
 # 			warn $blast_entry . "\n";
@@ -109,7 +105,7 @@ if($num_hits > 1){
 }
 
 open(OUTFILE, ">$outfile") or die "Couldn't open file $outfile for writting, $!";
-print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "align_length", "num_mismatch", "num_gaps", "query_start	query_end", "target_start", "target_end", "e_value", "bit_score") . "\n";
+print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "align_length", "num_mismatch", "num_gaps", "query_start", "query_end", "target_start", "target_end", "e_value", "bit_score") . "\n";
 foreach my $name_id (sort {$a cmp $b} keys %blast_entries){
       foreach my $blast_entry (sort {$b->[12] <=> $a->[12]} @{$blast_entries{$name_id}}){
 	    warn join("\t", @$blast_entry) . "\n";

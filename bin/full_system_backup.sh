@@ -21,15 +21,14 @@ DATABASE_LIST=/TRIA-NetUtils/reference_lists/cooke-db-list
 TRIA_UTILS_BACKUP_PREFIX=$BACKUP_DIR/TRIA-NetUtils-BACKUP
 TRIA_UTILS_BACKUP_DATE=$TRIA_UTILS_BACKUP_PREFIX/TRIA-NetUtils-$DATE
 
-mkdir -p $BACKUP_DIR
-mkdir -p $BACKUP_PREFIX
+mkdir -p $BACKUP_DATE
 mkdir -p $DATABASE_DIR
 mkdir -p $TRIA_UTILS_BACKUP_PREFIX
 
 # RSYNC_RUN_DIR=$BACKUP_DIR/RSYNC_RUN_LOG_FILES
 # mkdir -p $RSYNC_RUN_DIR
 # rsync_run_log=$RSYNC_RUN_DIR/$DATE.rsync-run.log
-# 
+# # 
 # RSYNC_ERROR_DIR=$BACKUP_DIR/RSYNC_ERROR_LOG_FILES
 # mkdir -p $RSYNC_ERROR_DIR
 # rsync_error_log=$RSYNC_ERROR_DIR/$DATE.rsync-errors.log
@@ -43,9 +42,9 @@ mkdir -p $TRIA_UTILS_BACKUP_PREFIX
 
 # RUN to perform rsync backups of entire system. Comment out if using DRY-RUN.
 # rsync -aAXvzm --link-dest=$BACKUP_CURRENT /* $BACKUP_DATE --delete --delete-excluded --exclude={'/home/*/.gvfs','/home/*/.mozilla','/dev/*','/proc/*','/sys/*','/tmp/*','/run/*','/mnt/*','/media/*',/lost+found} 1>$rsync_run_log 2>$rsync_error_log
-rsync -aAXvzm --link-dest=$BACKUP_CURRENT /* $BACKUP_DATE --delete --delete-excluded --exclude={'/home/*/.gvfs','/home/*/.mozilla','/dev/*','/proc/*','/sys/*','/tmp/*','/run/*','/mnt/*','/media/*',/lost+found}
-rm -f $BACKUP_CURRENT
-ln -s $BACKUP_DATE $BACKUP_CURRENT
+#rsync -aAXvzm --link-dest=$BACKUP_CURRENT /* $BACKUP_DATE --delete --delete-excluded --exclude={'/home/*/.gvfs','/home/*/.mozilla','/dev/*','/proc/*','/sys/*','/tmp/*','/run/*','/mnt/*','/media/*',/lost+found}
+#rm -f $BACKUP_CURRENT
+#ln -s $BACKUP_DATE $BACKUP_CURRENT
 
 # BACKUP all databases using pg_dump postgresql utility.
 perl /TRIA-NetUtils/bin/pg_dump_databases.pl -i $DATABASE_LIST -o $DATABASE_DIR
