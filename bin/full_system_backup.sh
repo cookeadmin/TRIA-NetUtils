@@ -42,9 +42,9 @@ mkdir -p $TRIA_UTILS_BACKUP_PREFIX
 
 # RUN to perform rsync backups of entire system. Comment out if using DRY-RUN.
 # rsync -aAXvzm --link-dest=$BACKUP_CURRENT /* $BACKUP_DATE --delete --delete-excluded --exclude={'/home/*/.gvfs','/home/*/.mozilla','/dev/*','/proc/*','/sys/*','/tmp/*','/run/*','/mnt/*','/media/*',/lost+found} 1>$rsync_run_log 2>$rsync_error_log
-#rsync -aAXvzm --link-dest=$BACKUP_CURRENT /* $BACKUP_DATE --delete --delete-excluded --exclude={'/home/*/.gvfs','/home/*/.mozilla','/dev/*','/proc/*','/sys/*','/tmp/*','/run/*','/mnt/*','/media/*',/lost+found}
-#rm -f $BACKUP_CURRENT
-#ln -s $BACKUP_DATE $BACKUP_CURRENT
+rsync -aAXvzm --link-dest=$BACKUP_CURRENT /* $BACKUP_DATE --delete --delete-excluded --exclude={'/home/*/.gvfs','/home/*/.mozilla','/dev/*','/proc/*','/sys/*','/tmp/*','/run/*','/mnt/*','/media/*',/lost+found}
+rm -f $BACKUP_CURRENT
+ln -s $BACKUP_DATE $BACKUP_CURRENT
 
 # BACKUP all databases using pg_dump postgresql utility.
 perl /TRIA-NetUtils/bin/pg_dump_databases.pl -i $DATABASE_LIST -o $DATABASE_DIR

@@ -275,10 +275,10 @@ for(my $i = 0; $i < $row_counter; $i++){
       # tree_number	latitude	longitude	dbh	altitude	field_code	attack	age	stand_aspect	stand_slope	stand_density	stand_composition	stand_baited	success	description_field	description_lab	comment	landscape_stand_id	alternative_code
       $tree_number = $tree_sample_code;
 
-      $latitude = sprintf("%.3f", @{$column_values{"Latitude (Decimal Degrees)"}}[$i]) if(defined(@{$column_values{"Latitude (Decimal Degrees)"}}[$i]));
+      $latitude = @{$column_values{"Latitude (Decimal Degrees)"}}[$i] if(defined(@{$column_values{"Latitude (Decimal Degrees)"}}[$i]));
       $latitude = "0.0" unless(defined($latitude));
 
-      $longitude = sprintf("%.3f", @{$column_values{"Longitude (Decimal Degrees)"}}[$i]) if(defined(@{$column_values{"Longitude (Decimal Degrees)"}}[$i]));
+      $longitude = @{$column_values{"Longitude (Decimal Degrees)"}}[$i] if(defined(@{$column_values{"Longitude (Decimal Degrees)"}}[$i]));
       $longitude = "0.0" unless(defined($longitude));
 
       $tree_height = @{$column_values{"Tree Description - DBH (cm)"}}[$i] if(defined(@{$column_values{"Tree Description - DBH (cm)"}}[$i]));

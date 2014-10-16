@@ -318,8 +318,8 @@ foreach my $gmap_query_id (keys %parsed_gmap){
 
 			      my ($query_align_seq_length,$target_align_seq_length) = (length($query_align_sequence),length($target_align_sequence));
 			      warn join("\t",$processed_gmap{$current_block_path});
-			      print "Target Sequence: $target_align_sequence\n";
-			      print "query Sequence: $query_align_sequence\n";
+			      print $target_align_sequence . "\n";
+			      print $query_align_sequence . "\n";
 			      die "Error: query_align_seq_length=$query_align_seq_length and target_align_seq_length=$target_align_seq_length are not equal" unless($target_align_seq_length eq $query_align_seq_length);
 
 			      warn join("\t", $target_align_seq_length, $query_align_seq_length) . "\n";

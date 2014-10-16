@@ -15,7 +15,7 @@ use Getopt::Long;
 
 use POSIX qw(strftime);
 
-
+use Parallel::Loops;
 use IPC::Open3;
 use File::Basename;
 use File::Copy;
@@ -98,25 +98,25 @@ my $structure_filename = fileparse($structure_infile);
 
 my ($structure_outfiles,$structure_metadata) = generate_structure_metadata($structure_filename,$mainparams,$extraparams,$output_dir);
 
+
 if (require Parallel::Loops){
-    
-#         warn "We are running in parallel!!!!\n";
-        my $parallel = Parallel::Loops->new($cpu_cores);
-#         my %shared_structure_metadata = %{$structure_metadata};
-#         $parallel->share(\%shared_structure_metadata);
+    #         warn "We are running in parallel!!!!\n";
+    my $parallel = Parallel::Loops->new($cpu_cores);
+    #         my %shared_structure_metadata = %{$structure_metadata};
+    #         $parallel->share(\%shared_structure_metadata);
 
-#             print $structure_metadata->{$structure_filename}->{"mainparams"} . "\n";
-        my @num_iterations = (0..(scalar(@{$structure_outfiles}) - 1));
-        $parallel->foreach(\@num_iterations, sub {
-            my $i = $_;
-            my $structure_outfile = $$structure_outfiles[$i];
-            my $structure_run_filename = fileparse($structure_outfile);
-            my $num_pops = $1 if($structure_run_filename =~ m/K\.(\d+)\.out\.iter\.\d+/);
-            my($mainparams, $extraparams) = ($structure_metadata->{$structure_run_filename}->{"mainparams"},$structure_metadata->{$structure_run_filename}->{"extraparams"});
+    #             print $structure_metadata->{$structure_filename}->{"mainparams"} . "\n";
+    my @num_iterations = (0..(scalar(@{$structure_outfiles}) - 1));
+    $parallel->foreach(\@num_iterations, sub {
+        my $i = $_;
+        my $structure_outfile = $$structure_outfiles[$i];
+        my $structure_run_filename = fileparse($structure_outfile);
+        my $num_pops = $1 if($structure_run_filename =~ m/K\.(\d+)\.out\.iter\.\d+/);
+        my($mainparams, $extraparams) = ($structure_metadata->{$structure_run_filename}->{"mainparams"},$structure_metadata->{$structure_run_filename}->{"extraparams"});
 
-            execute_structure($structure_infile, $num_pops, $mainparams, $extraparams, $structure_outfile, $output_dir);
-        });
-        undef $parallel;
+        execute_structure($structure_infile, $num_pops, $mainparams, $extraparams, $structure_outfile, $output_dir);
+    });
+    undef $parallel;
 }
 
 # $time_stamp = strftime("%a %b %e %Y %H:%M:%S", localtime);
@@ -156,18 +156,13 @@ sub generate_structure_metadata{
     my $output_dir = shift;
     die "Error lost output directory" unless defined $output_dir;
     
-    # Create output directory if it doesn't already exist.
-    my $structure_output_dir = join('/', $output_dir, "STRUCTURE_OUTFILES");
-	unless(-d $structure_output_dir){
-		mkdir($structure_output_dir, 0777) or die "Can't make directory: $!";
-	}
     my @structure_outfiles = ();
     my %structure_metadata = ();
     for(my $i = 1; $i <= $max_pops; $i++){
         for(my $j = 1; $j <= $num_inds; $j++){
             my $run_filename = join(".", "K", $i, "out", "iter",$j);
             my $structure_run_filename = join("_", $structure_filename, $run_filename);
-            my $structure_outfile = join('/', $structure_output_dir, $structure_run_filename);
+            my $structure_outfile = join('/', $output_dir, $structure_run_filename);
             push(@structure_outfiles, $structure_outfile);
             
             $structure_metadata{$structure_run_filename}{"mainparams"} = join("_", $mainparams, $run_filename);

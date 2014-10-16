@@ -175,11 +175,11 @@ sub generate_gmap{
 
       my $gmap_outfile = join("_", $gmap_target_file, $gmap_query_file . '.gmap';
 
-      my $db_dir = gmap_build($db_name, $gmap_target_file, $kmer_size, $output_dir);
+      #my $db_dir = gmap_build($db_name, $gmap_target_file, $kmer_size, $output_dir);
 
       warn "Generating gmap output file....\n";
-#       my $gmaplCmd  = "$gmapl -D $db_dir -d $db_name -S -A $gmap_query_file -n 1 -O -t $gmap_num_cpu -B $gmap_num_ram";
-      my $gmaplCmd  = "$gmapl -D $db_dir -d $db_name -S $gmap_query_file -n 1 -O -t $gmap_num_cpu -B $gmap_num_ram";
+       my $gmaplCmd  = "$gmapl -D $db_dir -d $db_name -S -A $gmap_query_file -O -t $gmap_num_cpu -B $gmap_num_ram";
+#      my $gmaplCmd  = "$gmapl -D $db_dir -d $db_name -S $gmap_query_file -n 1 -O -t $gmap_num_cpu -B $gmap_num_ram";
 
       warn $gmaplCmd . "\n\n";
 
