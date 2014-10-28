@@ -88,7 +88,7 @@ system($pg_dump,
       '-f', $sqlfile
 ) == 0 or die "Error executing pg_dump: $?";
 
-maintenance_stop($website_name, $webapp_dir);
+maintenance_start($webapp_name, $webapp_dir);
 
 warn "Connecting to database $db_name\n";
 
@@ -168,7 +168,8 @@ for(my $i = 0; $i < $row_counter; $i++){
       $landscape_desc_field_code = @{$column_values{"Landscape Description - Field Code"}}[$i] if(defined(@{$column_values{"Landscape Description - Field Code"}}[$i])) or die "Error: Landscape Description - Field Code is blank on line $i of file $infile";
 
       $stand_id = @{$column_values{"Stand ID"}}[$i] if(defined(@{$column_values{"Stand ID"}}[$i])) or die "Error: Stand ID is blank on line $i of file $infile";
-
+      $stand_id = "0" . $stand_id if(($stand_id >= 1 and $stand_id < 10) and $stand_id !~ m/0\d+/);
+      
       $stand_desc_name = @{$column_values{"Stand Description - Name"}}[$i] if(defined(@{$column_values{"Stand Description - Name"}}[$i])) or die "Error: Stand Description - Name is blank on line $i of file $infile";
 
       $landscape_stand_comments = @{$column_values{"Landscape Stand - Comments"}}[$i] if(defined(@{$column_values{"Landscape Stand - Comments"}}[$i])) or die "Error: Landscape Stand - Comments is blank on line $i of file $infile";
@@ -296,6 +297,7 @@ for(my $i = 0; $i < $row_counter; $i++){
 	    $tree_num_code = $tree_number;
       }
 
+      
       $tree_field_code = join("-", substr($landscape_desc_field_code, 0, 3), sprintf("%d", $stand_id), $tree_num_code) if(($stand_id eq $stand_sample_code) and ($tree_number eq $tree_sample_code)) or die "Error: Stand and Tree Number from file $infile doesn't match the unique sample id Stand and Tree Number codes\nStand: $stand_id <=> $stand_sample_code\nTree Number: $tree_number <=> $tree_sample_code";
       $tree_field_code = @{$column_values{"Tree Field Code"}}[$i] if(defined(@{$column_values{"Tree Field Code"}}[$i]));
 
@@ -342,6 +344,7 @@ for(my $i = 0; $i < $row_counter; $i++){
       push(@field_tree_comments, @{$column_values{"Field Tree - Comments"}}[$i]) if(defined(@{$column_values{"Field Tree - Comments"}}[$i]) and @{$column_values{"Field Tree - Comments"}}[$i] ne "");
       push(@field_tree_comments, join(" ", "Notes - Other lab notes:", @{$column_values{"Notes - Other lab notes"}}[$i])) if(defined(@{$column_values{"Notes - Other lab notes"}}[$i]) and @{$column_values{"Notes - Other lab notes"}}[$i] ne "");
       push(@field_tree_comments, join(" ", "Notes - Other:", @{$column_values{"Notes - Other"}}[$i])) if(defined(@{$column_values{"Notes - Other"}}[$i]) and @{$column_values{"Notes - Other"}}[$i] ne "");
+      push(@field_tree_comments, join(" ", "Attack height:", @{$column_values{"Attack height"}}[$i])) if(defined(@{$column_values{"Attack height"}}[$i]) and @{$column_values{"Attack height"}}[$i] ne "");
       push(@field_tree_comments, join(" ", "Section:", @{$column_values{"Section"}}[$i])) if(defined(@{$column_values{"Section"}}[$i]) and @{$column_values{"Section"}}[$i] ne "");
       push(@field_tree_comments, join(" ", "Section Description:", @{$column_values{"Section Description"}}[$i])) if(defined(@{$column_values{"Section Description"}}[$i]) and @{$column_values{"Section Description"}}[$i] ne "");
       
@@ -501,9 +504,9 @@ for(my $i = 0; $i < $row_counter; $i++){
 
       my $biomaterial_species = @{$column_values{"Biomaterial - Species"}}[$i] if(defined(@{$column_values{"Biomaterial - Species"}}[$i])) or die "Error: Biomaterial - Species on line $i of file $infile"; #M038
 
-      my %biomaterial_codes = ( #M038
-	    "Pinus contorta" => 495,
-	    "Pinus banksiana" => 496,
+      my %biomaterial_codes = (
+	    "Pinus contorta" => 495,#M004
+	    "Pinus banksiana" => 496,#M038
 	    "Pinus contorta var. latifolia" => 497,
 	    "Pinus contorta var. contorta" => 498,
       );
@@ -621,10 +624,10 @@ for(my $i = 0; $i < $row_counter; $i++){
       # Biomaterial - Collection	Biomaterial - Culture
       # Gallery	Gallery Description
       if($condition_code =~ m/^U[A-Z]+/){
-# 	    push(@process_details, join(" ", "Biomaterial - Collection:", @{$column_values{"Biomaterial - Collection"}}[$i])) if(defined(@{$column_values{"Biomaterial - Collection"}}[$i]) and @{$column_values{"Biomaterial - Collection"}}[$i] ne "");
-# 	    push(@process_details, join(" ", "Biomaterial - Culture:", @{$column_values{"Biomaterial - Culture"}}[$i])) if(defined(@{$column_values{"Biomaterial - Culture"}}[$i]) and @{$column_values{"Biomaterial - Culture"}}[$i] ne "");
-	    push(@process_details, join(" ", "Gallery Description:", @{$column_values{"Gallery Description"}}[$i])) if(defined(@{$column_values{"Gallery Description"}}[$i]) and @{$column_values{"Gallery Description"}}[$i] ne "");
+		push(@process_details, join(" ", "Gallery Description:", @{$column_values{"Gallery Description"}}[$i])) if(defined(@{$column_values{"Gallery Description"}}[$i]) and @{$column_values{"Gallery Description"}}[$i] ne "");
+
       }elsif($condition_code =~ m/^D[A-Z]+/){
+		push(@process_details, join(" ", "Gallery Description:", @{$column_values{"Gallery Description"}}[$i])) if(defined(@{$column_values{"Gallery Description"}}[$i]) and @{$column_values{"Gallery Description"}}[$i] ne "");
 
       }elsif($condition_code =~ m/^F/){
 
@@ -642,16 +645,14 @@ for(my $i = 0; $i < $row_counter; $i++){
 
       # Sample Processing Date	Fungal Establishment Date	Isolation Date	Tubed Date
       my @field_sample_comments = ();
-      push(@field_sample_comments, join(" ", "Processing Date:", @{$column_values{"Processing Date"}}[$i])) if(defined(@{$column_values{"Processing Date"}}[$i]) and @{$column_values{"Processing Date"}}[$i] ne "");
       if($condition_code =~ m/^U[A-Z]+/){
+            push(@field_sample_comments, join(" ", "Processing Date:", @{$column_values{"Processing Date"}}[$i])) if(defined(@{$column_values{"Processing Date"}}[$i]) and @{$column_values{"Processing Date"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Fungal Establishment Date:", @{$column_values{"Fungal Establishment Date"}}[$i])) if(defined(@{$column_values{"Fungal Establishment Date"}}[$i]) and @{$column_values{"Fungal Establishment Date"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Isolation Date:", @{$column_values{"Isolation Date"}}[$i])) if(defined(@{$column_values{"Isolation Date"}}[$i]) and @{$column_values{"Isolation Date"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Tubed Date:", @{$column_values{"Tubed Date"}}[$i])) if(defined(@{$column_values{"Tubed Date"}}[$i]) and @{$column_values{"Tubed Date"}}[$i] ne "");
       }elsif($condition_code =~ m/^D[A-Z]+/){
-# 		  Comments - notes on individual MPB
-# 		  Comments - Used for DNA
-# 		  Comments - Used for fungal sampling
-	    push(@field_sample_comments, join(" ", "Notes on individual MPB:", @{$column_values{"Comments - notes on individual MPB"}}[$i])) if(defined(@{$column_values{"Comments - notes on individual MPB"}}[$i]) and @{$column_values{"Comments - notes on individual MPB"}}[$i] ne "");
+            push(@field_sample_comments, join(" ", "Processing Date:", @{$column_values{"Processing Date"}}[$i])) if(defined(@{$column_values{"Processing Date"}}[$i]) and @{$column_values{"Processing Date"}}[$i] ne "");
+	    push(@field_sample_comments, join(" ", "Notes on individual MPB:", @{$column_values{"Comments - Notes on individual MPB"}}[$i])) if(defined(@{$column_values{"Comments - Notes on individual MPB"}}[$i]) and @{$column_values{"Comments - Notes on individual MPB"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Used for DNA:", @{$column_values{"Comments - Used for DNA"}}[$i])) if(defined(@{$column_values{"Comments - Used for DNA"}}[$i]) and @{$column_values{"Comments - Used for DNA"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Used for fungal sampling:", @{$column_values{"Comments - Used for fungal sampling"}}[$i])) if(defined(@{$column_values{"Comments - Used for fungal sampling"}}[$i]) and @{$column_values{"Comments - Used for fungal sampling"}}[$i] ne "");
 	    
@@ -803,23 +804,7 @@ for(my $i = 0; $i < $row_counter; $i++){
 
 warn "Disconnecting from database $db_name\n";
 my $rc = $dbh->disconnect() or die "Unable to disconnect: $DBI::errstr\n";
-maintenance_stop($website_name, $webapp_dir);
-
-sub find_files {
-	my $dir = shift;
-	die "Error lost directory" unless defined $dir;
-	my $suffix = shift;
-	die "Error lost pattern" unless defined $suffix;
-    
-	opendir(DIR,$dir) or die "Error opening $dir: $!";
-	my %files;
-	while(my $file = readdir(DIR)){
-	    my $filename = join('/', $dir, $file);
-	    $files{$file} = $filename if ($file =~ /\.$suffix$/);
-	}
-	closedir(DIR) or die "Error closing $dir: $!";
-	return \%files;
-}
+maintenance_stop($webapp_name, $webapp_dir);
 
 sub maintenance_start{	
 
