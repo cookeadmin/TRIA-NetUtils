@@ -25,15 +25,15 @@ usage() unless (
 );
 
 
-$min_percent_id = 80 unless defined $min_percent_id;
-$num_descriptions = 5 unless defined $num_descriptions;
-$num_alignments = 5 unless defined $num_alignments;
+$min_percent_id = 0 unless defined $min_percent_id;
+$num_descriptions = 25 unless defined $num_descriptions;
+$num_alignments = 25 unless defined $num_alignments;
 $blast_num_cpu = 2 unless defined $blast_num_cpu;
 $output_fmt = 'all' unless defined $output_fmt;
 
-my ($makeblastdb, $tblastx);
+my ($makeblastdb, $tblastn);
 $makeblastdb 			= '/usr/local/bin/makeblastdb';
-$tblastx			= '/usr/local/bin/tblastx';
+$tblastn			= '/usr/local/bin/tblastn';
 
 sub usage {
 
@@ -72,9 +72,9 @@ unless(-d $output_dir){
 
 my $fasta_query_name = fileparse($query_infile);
 my $fasta_target_name = fileparse($target_infile);
-my $tblastx_filename = join('/', $output_dir, join("_", $fasta_query_name, $fasta_target_name . '.tblastx'));
+my $tblastn_filename = join('/', $output_dir, join("_", $fasta_query_name, $fasta_target_name . '.tblastn'));
 
-my $tblastx_infile = generate_tblastx($query_infile, $target_infile, $num_descriptions, $num_alignments, $min_percent_id, $blast_num_cpu, $output_fmt, $tblastx_filename);
+my $tblastn_infile = generate_tblastn($query_infile, $target_infile, $num_descriptions, $num_alignments, $min_percent_id, $blast_num_cpu, $output_fmt, $tblastn_filename);
 
 # makeblastdb -in ncbi_nr_db_2014-05-30_organisms.fasta -dbtype 'nucl' -out ncbi_nr_db_2014-05-30_organisms.fasta
 sub makeblastdb_nuc{
@@ -97,7 +97,7 @@ sub makeblastdb_nuc{
 
 }
 
-sub generate_tblastx{
+sub generate_tblastn{
 	my $fasta_query = shift;
 	die "Error lost fasta query file" unless defined $fasta_query;
 	my $fasta_target = shift;
@@ -112,25 +112,25 @@ sub generate_tblastx{
 	die "Error lost number of cpus to allocate" unless defined $blast_num_cpu;
 	my $output_fmt = shift;
 	die "Error lost blastn output format" unless defined $output_fmt;
-	my $tblastx_filename = shift;
-	die "Error lost tblastx output filename" unless defined $tblastx_filename;
+	my $tblastn_filename = shift;
+	die "Error lost tblastn output filename" unless defined $tblastn_filename;
 
 	makeblastdb_nuc($fasta_target);
-	my $tblastx_outfile;
+	my $tblastn_outfile;
 	if(($output_fmt eq 'tab') or ($output_fmt eq 'all')){
-		my $tblastx_outfile = $tblastx_filename . ".tsv.txt";
-		unless(-s $tblastx_outfile){
-			warn "Generating tblastx tab-delimited file....\n";
-			my $tblastxCmd  = "$tblastx -query $fasta_query -db $fasta_target -seg yes -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovhsp pident ppos length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
-			warn $tblastxCmd . "\n\n";
+		my $tblastn_outfile = $tblastn_filename . ".tsv.txt";
+		unless(-s $tblastn_outfile){
+			warn "Generating tblastn tab-delimited file....\n";
+			my $tblastnCmd  = "$tblastn -query $fasta_query -db $fasta_target -max_target_seqs $num_alignments -evalue 10 -outfmt '6 qseqid salltitles qcovhsp pident ppos length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
+			warn $tblastnCmd . "\n\n";
 			
-			open(OUTFILE, ">$tblastx_outfile") or die "Couldn't open file $tblastx_outfile for writting, $!";
+			open(OUTFILE, ">$tblastn_outfile") or die "Couldn't open file $tblastn_outfile for writting, $!";
 			print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "percent_positives", "align_length", "num_mismatch", 
 			"num_gaps", "query_start", "query_end", "target_start", "target_end", "e_value", "bit_score") . "\n"; 
-			local (*TBLASTX_OUT, *TBLASTX_IN);
-			my  $pid = open2(\*TBLASTX_OUT,\*TBLASTX_IN, $tblastxCmd) or die "Error calling open2: $!";
-			close TBLASTX_IN or die "Error closing STDIN to tblastx process: $!";
-			while(<TBLASTX_OUT>){
+			local (*TBLASTN_OUT, *TBLASTN_IN);
+			my  $pid = open2(\*TBLASTN_OUT,\*TBLASTN_IN, $tblastnCmd) or die "Error calling open2: $!";
+			close TBLASTN_IN or die "Error closing STDIN to tblastn process: $!";
+			while(<TBLASTN_OUT>){
 				chomp $_;
 				my @blastn_hit =  split(/\t/, $_);
 				my ($query_name, $target_name, $query_coverage, $percent_identity, $percent_positives, $align_length, $num_mismatch,
@@ -141,32 +141,32 @@ sub generate_tblastx{
 						$num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) . "\n";
 				}
 			}
-			close TBLASTX_OUT or die "Error closing STDOUT from tblastx process: $!";
+			close TBLASTN_OUT or die "Error closing STDOUT from tblastn process: $!";
 			wait;
-			close(OUTFILE) or die "Couldn't close file $tblastx_outfile";
+			close(OUTFILE) or die "Couldn't close file $tblastn_outfile";
 		}
 
 	}
 	
 	if(($output_fmt eq 'align') or ($output_fmt eq 'all')){
-		my $tblastx_outfile = $tblastx_filename . ".aln.txt";
-		unless(-s $tblastx_outfile){
-			warn "Generating tblastx alignment file....\n";
-			my $tblastxCmd  = "$tblastx -query $fasta_query -db $fasta_target -seg yes -num_descriptions $num_descriptions -num_alignments $num_alignments -evalue 1e-6 -out $tblastx_outfile -num_threads $blast_num_cpu";
-			warn $tblastxCmd . "\n\n";
+		my $tblastn_outfile = $tblastn_filename . ".aln.txt";
+		unless(-s $tblastn_outfile){
+			warn "Generating tblastn alignment file....\n";
+			my $tblastnCmd  = "$tblastn -query $fasta_query -db $fasta_target -num_descriptions $num_descriptions -num_alignments $num_alignments -evalue 10 -out $tblastn_outfile -num_threads $blast_num_cpu";
+			warn $tblastnCmd . "\n\n";
 
-			my $status = system($tblastx, 
+			my $status = system($tblastn, 
 				'-query', $fasta_query,
 				'-db', $fasta_target,
 				'-seg', 'yes',
 				'-num_descriptions', $num_descriptions,
 				'-num_alignments', $num_alignments,
-				'-evalue', 1e-6,
-				'-out', $tblastx_outfile,
+				'-evalue', 10,
+				'-out', $tblastn_outfile,
 				'-num_threads', $blast_num_cpu
-			) == 0 or die "Error calling $tblastx: $?";
+			) == 0 or die "Error calling $tblastn: $?";
 
 		}
 	}
-	return $tblastx_outfile;
+	return $tblastn_outfile;
 }

@@ -5,6 +5,8 @@ use Getopt::Long;
 
 use File::Basename;
 use IPC::Open2;
+# remember to fix join portion of script in tblastx, blastx, tblastn, and so on.
+# perl blastp.pl -i /home/cookeadmin/workspace/GBS_data-08-10-2013/MPB_GBS_Data-08-10-2013/MPB_GWAS/pgi/pgi_nr_protein_sequences/ncbi_nr_db-2014-09-10.fasta_insecta_taxa_list.txt.fasta_pgi_nr_proteins.txt.fasta -d /home/cookeadmin/workspace/GBS_data-08-10-2013/MPB_GBS_Data-08-10-2013/MPB_GWAS/all_mpb_protein_sequences.fasta -p 0 -a 7 -v 1000000 -b 1000000 -o /home/cookeadmin/workspace/GBS_data-08-10-2013/MPB_GBS_Data-08-10-2013/MPB_GWAS/pgi/pgi_blastp
 
 my ($target_infile, $query_infile, $min_percent_id, $num_descriptions, $num_alignments, $blast_num_cpu, $output_fmt, $output_dir);
 GetOptions(
@@ -117,14 +119,14 @@ sub generate_blastp{
 	
 	my $blastp_outfile;
 	if(($output_fmt eq 'tab') or ($output_fmt eq 'all')){
-		my $blastp_outfile = $blastp_filename . ".tsv";
+		my $blastp_outfile = $blastp_filename . ".tsv.txt";
 		unless(-s $blastp_outfile){
 			warn "Generating blastp tab-delimited file....\n";
-			my $blastpCmd  = "$blastp -query $fasta_query -db $fasta_target -seg no -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovhsp pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
+			my $blastpCmd  = "$blastp -query $fasta_query -db $fasta_target -seg no -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovhsp pident ppos length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
 			warn $blastpCmd . "\n\n";
 			
 			open(OUTFILE, ">$blastp_outfile") or die "Couldn't open file $blastp_outfile for writting, $!";
-			print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "align_length", "num_mismatch",
+			print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "percent_positives", "align_length", "num_mismatch",
 			"num_gaps", "query_start", "query_end", "target_start", "target_end", "e_value", "bit_score") . "\n";
 			local (*BLASTP_OUT, *BLASTP_IN);
 			my  $pid = open2(\*BLASTP_OUT,\*BLASTP_IN, $blastpCmd) or die "Error calling open2: $!";
@@ -132,12 +134,12 @@ sub generate_blastp{
 			while(<BLASTP_OUT>){
 				chomp $_;
 				my @blastn_hit =  split(/\t/, $_);
-				my ($query_name, $target_name, $query_coverage, $percent_identity, $align_length, $num_mismatch,
-                $num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) = @blastn_hit;
+				my ($query_name, $target_name, $query_coverage, $percent_identity, $percent_positives, $align_length, $num_mismatch,
+					$num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) = @blastn_hit;
 				if($percent_identity >= $min_percent_id){
 					$e_value = "< 1e-179" if ($e_value =~ m/0\.0/);
-					print OUTFILE join("\t", $query_name, $target_name, $query_coverage, $percent_identity, $align_length, $num_mismatch,
-                    $num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) . "\n";
+					print OUTFILE join("\t", $query_name, $target_name, $query_coverage, $percent_identity, $percent_positives, $align_length, $num_mismatch,
+						$num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) . "\n";
 				}
 			}
 			close BLASTP_OUT or die "Error closing STDOUT from blastp process: $!";
@@ -146,7 +148,7 @@ sub generate_blastp{
 		}
 	}
 	if(($output_fmt eq 'align') or ($output_fmt eq 'all')){
-		my $blastp_outfile = $blastp_filename . ".aln";
+		my $blastp_outfile = $blastp_filename . ".aln.txt";
 		unless(-s $blastp_outfile){
 			warn "Generating blastp alignment file....\n";
 			my $blastpCmd  = "$blastp -query $fasta_query -db $fasta_target -seg no -num_descriptions $num_descriptions -num_alignments $num_alignments -evalue 1e-6 -out $blastp_outfile -num_threads $blast_num_cpu";

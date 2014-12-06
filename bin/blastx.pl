@@ -5,7 +5,7 @@ use Getopt::Long;
 
 use File::Basename;
 use IPC::Open2;
-
+# perl blastx.pl -d ~/workspace/GBS_data-08-10-2013/MPB_GBS_Data-08-10-2013/MPB_GWAS/for/FOR_PKG_proteins.fasta -i ~/workspace/GBS_data-08-10-2013/MPB_GBS_Data-08-10-2013/MPB_sequence_data/DendPond_female_1.0/female_annotations/DendPond_female_1.0_JB_1-scaffolds_trim1000.all.maker.transcripts.fasta -p 0 -a 7 -v 25 -b 25 -o ~/workspace/GBS_data-08-10-2013/MPB_GBS_Data-08-10-2013/MPB_GWAS/for/blastx
 my ($target_infile, $query_infile, $min_percent_id, $num_descriptions, $num_alignments, $blast_num_cpu, $output_fmt, $output_dir);
 GetOptions(
       'd=s'    => \$target_infile,
@@ -115,14 +115,14 @@ sub generate_blastx{
 	
 	my $blastx_outfile;
 	if(($output_fmt eq 'tab') or ($output_fmt eq 'all')){
-		my $blastx_outfile = $blastx_filename . ".tsv";
+		my $blastx_outfile = $blastx_filename . ".tsv.txt";
 		unless(-s $blastx_outfile){
 			warn "Generating blastx tab-delimited file....\n";
-			my $blastxCmd  = "$blastx -query $fasta_query -db $fasta_target -seg no -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovhsp pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
+			my $blastxCmd  = "$blastx -query $fasta_query -db $fasta_target -seg no -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovhsp pident ppos length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
 			warn $blastxCmd . "\n\n";
 			
 			open(OUTFILE, ">$blastx_outfile") or die "Couldn't open file $blastx_outfile for writting, $!";
-			print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "align_length", "num_mismatch", 
+			print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "percent_positives", "align_length", "num_mismatch", 
 			"num_gaps", "query_start", "query_end", "target_start", "target_end", "e_value", "bit_score") . "\n"; 
 			local (*BLASTX_OUT, *BLASTX_IN);
 			my  $pid = open2(\*BLASTX_OUT,\*BLASTX_IN, $blastxCmd) or die "Error calling open2: $!";
@@ -130,11 +130,11 @@ sub generate_blastx{
 			while(<BLASTX_OUT>){
 				chomp $_;
 				my @blastn_hit =  split(/\t/, $_);
-				my ($query_name, $target_name, $query_coverage, $percent_identity, $align_length, $num_mismatch,
+				my ($query_name, $target_name, $query_coverage, $percent_identity, $percent_positives, $align_length, $num_mismatch,
 					$num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) = @blastn_hit;
 				if($percent_identity >= $min_percent_id){
 					$e_value = "< 1e-179" if ($e_value =~ m/0\.0/);
-					print OUTFILE join("\t", $query_name, $target_name, $query_coverage, $percent_identity, $align_length, $num_mismatch, 
+					print OUTFILE join("\t", $query_name, $target_name, $query_coverage, $percent_identity, $percent_positives, $align_length, $num_mismatch, 
 						$num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) . "\n";
 				}
 			}
@@ -144,7 +144,7 @@ sub generate_blastx{
 		}
 	}
 	if(($output_fmt eq 'align') or ($output_fmt eq 'all')){
-		my $blastx_outfile = $blastx_filename . ".aln";
+		my $blastx_outfile = $blastx_filename . ".aln.txt";
 		unless(-s $blastx_outfile){
 			warn "Generating blastx alignment file....\n";
 			my $blastxCmd  = "$blastx -query $fasta_query -db $fasta_target -seg no -num_descriptions $num_descriptions -num_alignments $num_alignments -evalue 1e-6 -out $blastx_outfile -num_threads $blast_num_cpu";

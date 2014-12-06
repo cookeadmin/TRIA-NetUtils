@@ -64,17 +64,22 @@ while(my $seq_entry = $seqio->next_seq) {
 	my $sequence = $seq_entry->seq;
 	my $seq_desc = $seq_entry->desc;
  
- 	
-	#       warn $seq_id . "\n";
-	if(defined($seq_id_list->{$seq_id}) and ($exclude eq 'no')){
- 		warn join("\n", ">$seq_id", $sequence) . "\n";
-		print OUTFILE1 join("\n", ">$seq_id", $sequence) . "\n";
-		print OUTFILE2 "$seq_id" . "\n";
+ 	my $sequence_id = "";
+ 	if($seq_desc ne ""){
+ 		$sequence_id = join(" ", $seq_id, $seq_desc);
+ 	}else{
+ 		$sequence_id = $seq_id;
+ 	}
+	warn $sequence_id . "\n";
+	if(defined($seq_id_list->{$sequence_id}) and ($exclude eq 'no')){
+ 		warn join("\n", ">$sequence_id", $sequence) . "\n";
+		print OUTFILE1 join("\n", ">$sequence_id", $sequence) . "\n";
+		print OUTFILE2 "$sequence_id" . "\n";
 	}
 	
-	if(!(defined($seq_id_list->{$seq_id})) and ($exclude eq 'yes')){
+	if(!(defined($seq_id_list->{$sequence_id})) and ($exclude eq 'yes')){
 		my $seq_length = join("=", "length", length($sequence));
-		my $seq_header = join(" ", $seq_id, $seq_length);
+		my $seq_header = join(" ", $sequence_id, $seq_length);
 		warn join("\n", ">$seq_header", $sequence) . "\n";
 		print OUTFILE1 join("\n", ">$seq_header", $sequence) . "\n";
 		print OUTFILE2 "$seq_header" . "\n";

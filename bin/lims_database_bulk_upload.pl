@@ -341,14 +341,15 @@ for(my $i = 0; $i < $row_counter; $i++){
       $description_lab = "N/A" unless(defined($description_lab));
 
       my @field_tree_comments = ();
-      push(@field_tree_comments, @{$column_values{"Field Tree - Comments"}}[$i]) if(defined(@{$column_values{"Field Tree - Comments"}}[$i]) and @{$column_values{"Field Tree - Comments"}}[$i] ne "");
+      push(@field_tree_comments, join(" ", "Field Tree - Comments", @{$column_values{"Field Tree - Comments"}}[$i])) if(defined(@{$column_values{"Field Tree - Comments"}}[$i]) and @{$column_values{"Field Tree - Comments"}}[$i] ne "");
+      push(@field_tree_comments, join(" ", "Biomaterial - Collection:", @{$column_values{"Biomaterial - Collection"}}[$i])) if(defined(@{$column_values{"Biomaterial - Collection"}}[$i]) and @{$column_values{"Biomaterial - Collection"}}[$i] ne "");
       push(@field_tree_comments, join(" ", "Notes - Other lab notes:", @{$column_values{"Notes - Other lab notes"}}[$i])) if(defined(@{$column_values{"Notes - Other lab notes"}}[$i]) and @{$column_values{"Notes - Other lab notes"}}[$i] ne "");
       push(@field_tree_comments, join(" ", "Notes - Other:", @{$column_values{"Notes - Other"}}[$i])) if(defined(@{$column_values{"Notes - Other"}}[$i]) and @{$column_values{"Notes - Other"}}[$i] ne "");
       push(@field_tree_comments, join(" ", "Attack height:", @{$column_values{"Attack height"}}[$i])) if(defined(@{$column_values{"Attack height"}}[$i]) and @{$column_values{"Attack height"}}[$i] ne "");
       push(@field_tree_comments, join(" ", "Section:", @{$column_values{"Section"}}[$i])) if(defined(@{$column_values{"Section"}}[$i]) and @{$column_values{"Section"}}[$i] ne "");
       push(@field_tree_comments, join(" ", "Section Description:", @{$column_values{"Section Description"}}[$i])) if(defined(@{$column_values{"Section Description"}}[$i]) and @{$column_values{"Section Description"}}[$i] ne "");
       
-      if(scalar(@field_tree_comments) > 0){
+      if(scalar(@field_tree_comments) >= 1){
 	    $field_tree_comment = join("; ", @field_tree_comments);
       }else{
 	    $field_tree_comment = "N/A" unless(defined($field_tree_comment)); 
@@ -470,9 +471,10 @@ for(my $i = 0; $i < $row_counter; $i++){
 
       # Grabbing sample condition information for populating the sample conditions table.
       # id	code	experiment_factor_detail_id	rank
-      my $condition_code = "";
-      if($organism_sample_code =~ m/^(U[A-Z]+)\d+D[A-Z]+\d+G\d+/){
+      my ($condition_code, $gallery_code) = "";
+      if($organism_sample_code =~ m/^(U[A-Z]+)\d+D[A-Z]+\d+(G\d+)/){
 	    $condition_code = $1;
+	    $gallery_code = $2;
       }elsif($organism_sample_code =~ m/^(D[A-Z]+)\d+G\d+/){
 	    $condition_code = $1; 
       }elsif($organism_sample_code =~ m/^(F)\d*/){
@@ -486,30 +488,57 @@ for(my $i = 0; $i < $row_counter; $i++){
       my $sample_condition_detail_code = join("-", $experiment_sample_code, $landscape_sample_code, $stand_sample_code, $tree_sample_code, $condition_code);
 
       my %field_collection_codes = (
-	    "DL" => 501,
-	    "UC" => 502,
-	    "UL" => 503,
-	    "UM" => 504,
-	    "DA" => 505,
-	    "UR" => 506,
-	    "UCG" => 507,
-	    "UCL" => 508,
-	    "UCM" => 509,
-	    "UCMG" => 510,
-	    "ULM" => 511,
-	    "UMG" => 512,
-	    "M" => 499,
-	    "G" => 500,
+# 	    "DL" => 501,
+# 	    "UC" => 502,
+# 	    "UL" => 503,
+# 	    "UM" => 504,
+# 	    "DA" => 505,
+# 	    "UR" => 506,
+# 	    "UCG" => 507,
+# 	    "UCL" => 508,
+# 	    "UCM" => 509,
+# 	    "UCMG" => 510,
+# 	    "ULM" => 511,
+# 	    "UMG" => 512,
+# 	    "M" => 499,
+# 	    "G" => 500,
+	    "DL" => 522,
+	    "UC" => 523,
+	    "UM" => 524,
+	    "DA" => 525,
+	    "UCG" => 526,
+	    "UCM" => 527,
+	    "UMG" => 528,
+	    "UG" => 529,
+	    "UT" => 530,
+	    "UTA" => 531,
+	    "UTC" => 532,
+	    "UX" => 533,
+	    "UMD" => 534,
       );
 
       my $biomaterial_species = @{$column_values{"Biomaterial - Species"}}[$i] if(defined(@{$column_values{"Biomaterial - Species"}}[$i])) or die "Error: Biomaterial - Species on line $i of file $infile"; #M038
 
       my %biomaterial_codes = (
-	    "Pinus contorta" => 495,#M004
-	    "Pinus banksiana" => 496,#M038
-	    "Pinus contorta var. latifolia" => 497,
-	    "Pinus contorta var. contorta" => 498,
+# 	"Pinus contorta" => 495, #M004
+# 	    "Pinus banksiana" => 496, #M038
+# 	    "Pinus contorta var. latifolia" => 497, #M038
+# 	    "Pinus contorta var. contorta" => 498, #M038
+	"Dendroctonus ponderosae" => 172, #M014
+	"Grosmannia clavigera" => 173, #M014
+	"Ophiostoma montium" => 174, #M014
+	"Grosmannia sp." => 513, #M014
+	"Grosmannia clavigera and Ophiostoma montium" => 514, #M014
+	"Grosmannia clavigera and Grosmannia sp." => 515, #M014
+	"Leptographium terebrantis" => 516, #M014
+	"Leptographium terebrantis or Grosmannia aurea" => 517, #M014
+	"Leptographium terebrantis or Grosmannia clavigera" => 518, #M014
+	"MIXED FUNGI" => 519, #M014
+	"Ophiostoma montium and Grosmannia sp." => 520, #M014
+	"Ophiostomatoid fungi" => 521, #M014
+	
       );
+      
       warn "$condition_code, $field_collection_codes{$condition_code}";
       die "Error: biomaterial_species blank $biomaterial_species, $biomaterial_codes{$biomaterial_species}" if(!defined($biomaterial_codes{$biomaterial_species}));
       die "Error: condition_code blank $condition_code, $field_collection_codes{$condition_code}" if(!defined($field_collection_codes{$condition_code}));
@@ -625,6 +654,9 @@ for(my $i = 0; $i < $row_counter; $i++){
       # Gallery	Gallery Description
       if($condition_code =~ m/^U[A-Z]+/){
 		push(@process_details, join(" ", "Gallery Description:", @{$column_values{"Gallery Description"}}[$i])) if(defined(@{$column_values{"Gallery Description"}}[$i]) and @{$column_values{"Gallery Description"}}[$i] ne "");
+		push(@process_details, join(" ", "Slab Description:", @{$column_values{"Slab Description"}}[$i])) if(defined(@{$column_values{"Slab Description"}}[$i]) and @{$column_values{"Slab Description"}}[$i] ne "");
+		push(@process_details, join(" ", "Beetle Code:", @{$column_values{"Beetle Code"}}[$i])) if(defined(@{$column_values{"Beetle Code"}}[$i]) and @{$column_values{"Beetle Code"}}[$i] ne "");
+		push(@process_details, join(" ", "Fungus Code:", @{$column_values{"Fungus Code"}}[$i])) if(defined(@{$column_values{"Fungus Code"}}[$i]) and @{$column_values{"Fungus Code"}}[$i] ne "");
 
       }elsif($condition_code =~ m/^D[A-Z]+/){
 		push(@process_details, join(" ", "Gallery Description:", @{$column_values{"Gallery Description"}}[$i])) if(defined(@{$column_values{"Gallery Description"}}[$i]) and @{$column_values{"Gallery Description"}}[$i] ne "");
@@ -647,6 +679,7 @@ for(my $i = 0; $i < $row_counter; $i++){
       my @field_sample_comments = ();
       if($condition_code =~ m/^U[A-Z]+/){
             push(@field_sample_comments, join(" ", "Processing Date:", @{$column_values{"Processing Date"}}[$i])) if(defined(@{$column_values{"Processing Date"}}[$i]) and @{$column_values{"Processing Date"}}[$i] ne "");
+	    push(@field_sample_comments, join(" ", "Notes on fungi:", @{$column_values{"Comments - Notes on Fungi"}}[$i])) if(defined(@{$column_values{"Comments - Notes on Fungi"}}[$i]) and @{$column_values{"Comments - Notes on Fungi"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Fungal Establishment Date:", @{$column_values{"Fungal Establishment Date"}}[$i])) if(defined(@{$column_values{"Fungal Establishment Date"}}[$i]) and @{$column_values{"Fungal Establishment Date"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Isolation Date:", @{$column_values{"Isolation Date"}}[$i])) if(defined(@{$column_values{"Isolation Date"}}[$i]) and @{$column_values{"Isolation Date"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Tubed Date:", @{$column_values{"Tubed Date"}}[$i])) if(defined(@{$column_values{"Tubed Date"}}[$i]) and @{$column_values{"Tubed Date"}}[$i] ne "");
@@ -671,6 +704,7 @@ for(my $i = 0; $i < $row_counter; $i++){
       }
 
       $gallery = @{$column_values{"Gallery"}}[$i] if(defined(@{$column_values{"Gallery"}}[$i]));
+      $gallery = $gallery_code if(defined($gallery_code));
       if(defined($gallery)){
 	    if($gallery !~ m/^G\d+/){
 		  if(($gallery < 10) and ($gallery !~ m/^0/)){
