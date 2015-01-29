@@ -1,0 +1,34 @@
+        my ($tag_count_files, $tag_count_file_counter) = find_files($tag_count_output_dir, "cnt");
+	my $non_zero_tag_count_files = 0;
+	foreach my $file_name (sort keys %{$tag_count_files}){
+		warn $file_name . "\n";
+		if(-s $tag_count_files->{$file_name}){
+			$non_zero_tag_count_files++;
+		}
+	}
+	
+	unless(($non_zero_tag_count_files eq $tag_count_file_counter) and ($tag_count_file_counter ne 0)){
+
+	}
+
+sub find_files{
+    
+	my $infile_dir = shift;
+	die "Error lost input file directory" unless defined $infile_dir;
+	
+	my $suffix = shift;
+	die "Error lost file extension suffix directory" unless defined $suffix;
+	
+	my %files = ();
+	my $file_counter = 0;
+	opendir(DIR, $infile_dir) || die "Error in opening dir $infile_dir\n";
+	while( my $file_name = readdir(DIR)){
+		my $infile_name = join('/', $infile_dir, $file_name) if ($file_name =~ m/\.$suffix$/);
+		warn "$infile_name\n" if ($file_name =~ m/\.$suffix$/);
+		$files{$file_name} = $infile_name if ($file_name =~ m/\.$suffix$/);
+		$file_counter++ if ($file_name =~ m/\.$suffix$/);
+	}
+	closedir(DIR);
+	return (\%files, $file_counter);
+}
+

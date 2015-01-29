@@ -46,8 +46,8 @@ unless(-d $output_dir){
       mkdir($output_dir, 0777) or die "Can't make directory: $!";
 }
 
-my $fasta_filename = fileparse($fasta_infile);
-my $seq_id_list_filename = fileparse($seq_id_list_file);
+my $fasta_filename = fileparse($fasta_infile, qr/\.\w+/);
+my $seq_id_list_filename = fileparse($seq_id_list_file, qr/\.\w+/);
 
 warn "Loading $seq_id_list_filename ids for parsing $fasta_filename ....\n\n";
 my $seq_id_list = parse_seq_id_list($seq_id_list_file);
@@ -70,19 +70,43 @@ while(my $seq_entry = $seqio->next_seq) {
  	}else{
  		$sequence_id = $seq_id;
  	}
-	warn $sequence_id . "\n";
-	if(defined($seq_id_list->{$sequence_id}) and ($exclude eq 'no')){
- 		warn join("\n", ">$sequence_id", $sequence) . "\n";
-		print OUTFILE1 join("\n", ">$sequence_id", $sequence) . "\n";
-		print OUTFILE2 "$sequence_id" . "\n";
+# 	warn $sequence_id . "\n";
+
+	if($exclude eq 'no'){
+		my $is_seq_id_found = "false";
+		foreach my $seq_id_entry (sort keys %{$seq_id_list}){
+		
+			if($sequence_id =~ m/$seq_id_entry/){
+				$is_seq_id_found = "true";
+				last;
+			}
+		}
+		
+		if($is_seq_id_found eq "true"){
+			warn join("\n", ">$sequence_id", $sequence) . "\n";
+			print OUTFILE1 join("\n", ">$sequence_id", $sequence) . "\n";
+			print OUTFILE2 "$sequence_id" . "\n";
+		}
 	}
 	
-	if(!(defined($seq_id_list->{$sequence_id})) and ($exclude eq 'yes')){
-		my $seq_length = join("=", "length", length($sequence));
-		my $seq_header = join(" ", $sequence_id, $seq_length);
-		warn join("\n", ">$seq_header", $sequence) . "\n";
-		print OUTFILE1 join("\n", ">$seq_header", $sequence) . "\n";
-		print OUTFILE2 "$seq_header" . "\n";
+	if($exclude eq 'yes'){
+	
+		my $is_seq_id_found = "false";
+		foreach my $seq_id_entry (sort keys %{$seq_id_list}){
+		
+			if($sequence_id =~ m/$seq_id_entry/){
+				$is_seq_id_found = "true";
+				last;
+			}
+		}
+		
+		if($is_seq_id_found eq "false"){
+			my $seq_length = join("=", "length", length($sequence));
+			my $seq_header = join(" ", $sequence_id, $seq_length);
+			warn join("\n", ">$seq_header", $sequence) . "\n";
+			print OUTFILE1 join("\n", ">$seq_header", $sequence) . "\n";
+			print OUTFILE2 "$seq_header" . "\n";
+		}
 	}
      
 }
@@ -101,7 +125,7 @@ sub parse_seq_id_list{
 	open(INFILE, "<$seq_id_list_file") or die "Couldn't open file $seq_id_list_file for reading, $!";
 	while(<INFILE>){
 		chomp $_;
-		warn "$_\n";
+ 		warn "$_\n";
 		my $seq_id = $_;
 		$seq_id_list{$seq_id} = $seq_id;
 # 		$i++;

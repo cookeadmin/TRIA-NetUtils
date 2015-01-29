@@ -59,7 +59,7 @@ sub split_fasta_into_n_files{
       my $output_dir = shift;
       die "Error lost output directory" unless defined $output_dir;
       
-      my $fasta_filename = fileparse($fasta_infile);
+      my $fasta_filename = fileparse($fasta_infile, qr/\.\w+/);
 
       warn "Splitting $fasta_filename into $num_files files....\n\n";
 
@@ -102,7 +102,7 @@ sub split_fasta_into_n_files{
 
 	    warn join(" ", "File $i:", join("-", $seq_counter, ($num_seqs - 1))) . "\n";
 	    my $fasta_file = join("-", $fasta_filename, "part$i");
-	    my $fasta_outfile = join('/', $output_dir, $fasta_file);
+	    my $fasta_outfile = join('/', $output_dir, $fasta_file . ".fasta");
 
 	    $fasta_file_parts{$fasta_file} = $fasta_outfile;
 

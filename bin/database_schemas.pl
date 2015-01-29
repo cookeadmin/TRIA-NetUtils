@@ -50,8 +50,6 @@ warn $db_file . "\n";
 my $db_name_list = get_db_names($db_file);
 foreach my $db_name (@{$db_name_list}){
 
-	#my $db_name = "spruce_production";
-
 	# Create output directory if it doesn't already exist.
 	my $db_dir = join('/', $output_dir, $db_name);
 	unless(-d $db_dir){
@@ -81,8 +79,13 @@ foreach my $db_name (@{$db_name_list}){
 		#warn join(",", @row) . "\n";
 		
 	    for(my $i = 0; $i <= $#row; $i++){
-		  $row[$i] =~ s/\n|\r//g;
-		  $row[$i] =~ s/\t/ /g;
+		$row[$i] =~ s/\r\n/; /g;
+		$row[$i] =~ s/; +$//;
+		$row[$i] =~ s/,\s*/, /g;
+		$row[$i] =~ s/n\/a/N\/A/g;
+		$row[$i] =~ s/\t/ /g;
+		$row[$i] =~ s/\s{2,}/ /g;
+		$row[$i] =~ s/^\s+|\s+$//g;
 		  
 	    }
 	    push(@table_names, @row);
@@ -108,8 +111,13 @@ foreach my $db_name (@{$db_name_list}){
 		while(@row = $sth->fetchrow()){
 			#warn join(" ", $table, @row) . "\n";
 			for(my $i = 0; $i <= $#row; $i++){
-			      $row[$i] =~ s/\n|\r//g;
-			      $row[$i] =~ s/\t/ /g;
+		$row[$i] =~ s/\r\n/; /g;
+		$row[$i] =~ s/; +$//;
+		$row[$i] =~ s/,\s*/, /g;
+				$row[$i] =~ s/n\/a/N\/A/g;
+				$row[$i] =~ s/\t/ /g;
+				$row[$i] =~ s/\s{2,}/ /g;
+				$row[$i] =~ s/^\s+|\s+$//g;
 			}
 			push(@attribute_names, @row);
 		}
@@ -138,9 +146,13 @@ foreach my $db_name (@{$db_name_list}){
 				    if($row[$i] eq ""){
 					  $row[$i] = "N/A";
 				    }
-				    $row[$i] =~ s/\n|\r//g;
-				    $row[$i] =~ s/n\/a/N\/A/g;
-				    $row[$i] =~ s/\t/ /g;
+		$row[$i] =~ s/\r\n/; /g;
+		$row[$i] =~ s/; +$//;
+		$row[$i] =~ s/,\s*/, /g;
+					$row[$i] =~ s/n\/a/N\/A/g;
+					$row[$i] =~ s/\t/ /g;
+					$row[$i] =~ s/\s{2,}/ /g;
+					$row[$i] =~ s/^\s+|\s+$//g;
 			      }
 			}
 			#	warn join("\t", @row) . "\n";
@@ -235,8 +247,13 @@ foreach my $db_name (@{$db_name_list}){
 	    my @table_names;
 	    while(my @row = $sth->fetchrow()){
 		  for(my $i = 0; $i <= $#row; $i++){
-			$row[$i] =~ s/\n|\r//g;
-			$row[$i] =~ s/\t/ /g;
+		$row[$i] =~ s/\r\n/; /g;
+		$row[$i] =~ s/; +$//;
+		$row[$i] =~ s/,\s*/, /g;
+				$row[$i] =~ s/n\/a/N\/A/g;
+				$row[$i] =~ s/\t/ /g;
+				$row[$i] =~ s/\s{2,}/ /g;
+				$row[$i] =~ s/^\s+|\s+$//g;
 		  }
 		  #warn join(",", @row) . "\n";
 		  push(@table_names, @row);
@@ -257,8 +274,13 @@ foreach my $db_name (@{$db_name_list}){
 		  while(@row = $sth->fetchrow()){
 
 			for(my $i = 0; $i <= $#row; $i++){
-			      $row[$i] =~ s/\n|\r//g;
-			      $row[$i] =~ s/\t/ /g;
+		$row[$i] =~ s/\r\n/; /g;
+		$row[$i] =~ s/; +$//;
+		$row[$i] =~ s/,\s*/, /g;
+				$row[$i] =~ s/n\/a/N\/A/g;
+				$row[$i] =~ s/\t/ /g;
+				$row[$i] =~ s/\s{2,}/ /g;
+				$row[$i] =~ s/^\s+|\s+$//g;
 			}
 			#warn join(" ", $table, @row) . "\n";
 			push(@attribute_names, @row);
@@ -281,16 +303,20 @@ foreach my $db_name (@{$db_name_list}){
 			      }
 			      
 			      if(defined($row[$i])){
-				    if(length($row[$i]) == 0){
-				    
-					  $row[$i] = "N/A";
-				    }
-				    if($row[$i] eq ""){
-					  $row[$i] = "N/A";
-				    }
-				    $row[$i] =~ s/\n|\r//g;
-				    $row[$i] =~ s/n\/a/N\/A/g;
-				    $row[$i] =~ s/\t/ /g;
+				if(length($row[$i]) == 0){
+
+					$row[$i] = "N/A";
+				}
+				if($row[$i] eq ""){
+					$row[$i] = "N/A";
+				}
+		$row[$i] =~ s/\r\n/; /g;
+		$row[$i] =~ s/; +$//;
+		$row[$i] =~ s/,\s*/, /g;
+				$row[$i] =~ s/n\/a/N\/A/g;
+				$row[$i] =~ s/\t/ /g;
+				$row[$i] =~ s/\s{2,}/ /g;
+				$row[$i] =~ s/^\s+|\s+$//g;
 			      }
 			}
 	    #	warn join("\t", @row) . "\n";

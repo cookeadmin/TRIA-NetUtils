@@ -79,6 +79,7 @@ my $blastx_infile = generate_blastx($query_infile, $target_infile, $min_percent_
 sub makeblastdb_pep{
       my $fastadb = shift;
       die "Error lost fastadb to makeblastdb" unless defined $fastadb;
+      
       # format the database file into .pin .psq .phr files.
       my ($fastadbPIN, $fastadbPSQ, $fastadbPHR);
       $fastadbPIN = $fastadb . '.pin';

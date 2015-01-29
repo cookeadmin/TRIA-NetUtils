@@ -6,11 +6,13 @@ use Getopt::Long;
 use File::Basename;
 use IPC::Open2;
 
-my ($target_infile, $query_infile, $min_percent_id, $blastn_task, $gap_open, $gap_extend, $num_descriptions, $num_alignments, $blast_num_cpu, $output_fmt, $output_dir);
+# perl blastn.pl -d ~/workspace/GBS_data-08-10-2013/MPB_GBS_Data-08-10-2013/MPB_sequence_data/DendPond_male_1.0/Primary_Assembly/unplaced_scaffolds/FASTA/DendPond_male_1.0_unplaced.scaf.fa -i ~/gbs_sequences_clipped_Ns.fasta -t megablast -o ~/MPB_GBS_REFGEN_MEGABLAST_ALIGN -a 7
+my ($target_infile, $query_infile, $min_percent_id, $min_qcov, $blastn_task, $gap_open, $gap_extend, $num_descriptions, $num_alignments, $blast_num_cpu, $output_fmt, $output_dir);
 GetOptions(
       'd=s'    => \$target_infile,
       'i=s'    => \$query_infile,
       'p=s'    => \$min_percent_id,
+      'c=s'    => \$min_qcov,
       't=s'    => \$blastn_task,
       'g=s'    => \$gap_open,
       'e=s'    => \$gap_extend,
@@ -27,23 +29,31 @@ usage() unless (
       and defined $output_dir
 );
 
+$min_qcov = 80 unless defined $min_qcov;
 
 $min_percent_id = 80 unless defined $min_percent_id;
+
 $blastn_task = 'blastn' unless defined $blastn_task;
+
 $gap_open = 5 unless defined $gap_open;
+
 $gap_extend = 2 unless defined $gap_extend;
+
 $num_descriptions = 25 unless defined $num_descriptions;
+
 $num_alignments = 25 unless defined $num_alignments;
+
 $blast_num_cpu = 2 unless defined $blast_num_cpu;
+
 $output_fmt = 'all' unless defined $output_fmt;
 
 my ($makeblastdb, $blastn);
 
-$makeblastdb 			= '/usr/bin/makeblastdb';
-$blastn				= '/usr/bin/blastn';
+# $makeblastdb 			= '/usr/bin/makeblastdb';
+# $blastn				= '/usr/bin/blastn';
 
-# $makeblastdb 			= '/usr/local/bin/makeblastdb';
-# $blastn				= '/usr/local/bin/blastn';
+$makeblastdb 			= '/usr/local/bin/makeblastdb';
+$blastn				= '/usr/local/bin/blastn';
 
 sub usage {
 
@@ -90,7 +100,7 @@ my $fasta_query_name = fileparse($query_infile);
 my $fasta_target_name = fileparse($target_infile);
 my $blastn_filename = join('/', $output_dir, join("_", $fasta_query_name, $fasta_target_name . ".$blastn_task"));
 
-my $blastn_infile = generate_blastn($query_infile, $target_infile, $blastn_task, $gap_open, $gap_extend, $num_descriptions, $num_alignments, $min_percent_id, $blast_num_cpu, $output_fmt, $blastn_filename);
+my $blastn_infile = generate_blastn($query_infile, $target_infile, $blastn_task, $gap_open, $gap_extend, $num_descriptions, $num_alignments, $min_percent_id, $min_qcov, $blast_num_cpu, $output_fmt, $blastn_filename);
 
 # makeblastdb -in ncbi_nr_db_2014-05-30_organisms.fasta -dbtype 'nucl' -out ncbi_nr_db_2014-05-30_organisms.fasta
 sub makeblastdb_nuc{
@@ -114,26 +124,40 @@ sub makeblastdb_nuc{
 }
 
 sub generate_blastn{
+
 	my $fasta_query = shift;
 	die "Error lost fasta query file" unless defined $fasta_query;
+	
 	my $fasta_target = shift;
 	die "Error lost fasta database target file" unless defined $fasta_target;
+	
 	my $blastn_task = shift;
 	die "Error lost blastn program task" unless defined $blastn_task;
+	
 	my $gap_open = shift;
 	die "Error lost gap opening penalty" unless defined $gap_open;
+	
 	my $gap_extend = shift;
 	die "Error lost gap extension penalty" unless defined $gap_extend;
+	
 	my $num_descriptions = shift;
 	die "Error lost number of descriptions" unless defined $num_descriptions;
+	
 	my $num_alignments = shift;
 	die "Error lost number of alignments" unless defined $num_alignments;
+	
 	my $min_percent_id = shift;
 	die "Error lost minimum percent identity" unless defined $min_percent_id;
+	
+	my $min_qcov = shift;
+	die "Error lost minimum query coverage" unless defined $min_qcov;
+	
 	my $blast_num_cpu = shift;
 	die "Error lost number of cpus to allocate" unless defined $blast_num_cpu;
+	
 	my $output_fmt = shift;
 	die "Error lost blastn output format" unless defined $output_fmt;
+	
 	my $blastn_filename = shift;
 	die "Error lost blastn output filename" unless defined $blastn_filename;
 
@@ -141,7 +165,7 @@ sub generate_blastn{
 
 	my $blastn_outfile;
 	if(($output_fmt eq 'tab') or ($output_fmt eq 'all')){
-		my $blastn_outfile = $blastn_filename . ".tsv";
+		my $blastn_outfile = $blastn_filename . ".tsv.txt";
 		unless(-s $blastn_outfile){
 			warn "Generating blastn tab-delimited file....\n";
 			my $blastnCmd  = "$blastn -query $fasta_query -db $fasta_target -task $blastn_task -gapopen $gap_open -gapextend $gap_extend -dust yes -max_target_seqs $num_alignments -evalue 1e-6 -outfmt '6 qseqid salltitles qcovhsp pident length mismatch gapopen qstart qend sstart send evalue bitscore' -num_threads $blast_num_cpu";
@@ -151,14 +175,14 @@ sub generate_blastn{
 			print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "align_length", "num_mismatch", 
 			"num_gaps", "query_start", "query_end", "target_start", "target_end", "e_value", "bit_score") . "\n"; 
 			local (*BLASTN_OUT, *BLASTN_IN);
-			my  $pid = open2(\*BLASTN_OUT,\*BLASTN_IN, $blastnCmd) or die "Error calling open2: $!";
+			my $pid = open2(\*BLASTN_OUT,\*BLASTN_IN, $blastnCmd) or die "Error calling open2: $!";
 			close BLASTN_IN or die "Error closing STDIN to blastn process: $!";
 			while(<BLASTN_OUT>){
 				chomp $_;
 				my @blastn_hit =  split(/\t/, $_);
 				my ($query_name, $target_name, $query_coverage, $percent_identity, $align_length, $num_mismatch,
 					$num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) = @blastn_hit;
-				if($percent_identity >= $min_percent_id){
+				if(($percent_identity >= $min_percent_id) and ($query_coverage >= $min_qcov)){
 					$e_value = "< 1e-179" if ($e_value =~ m/0\.0/);
 					print OUTFILE join("\t", $query_name, $target_name, $query_coverage, $percent_identity, $align_length, $num_mismatch, 
 						$num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) . "\n";
@@ -172,7 +196,7 @@ sub generate_blastn{
 	}
 
 	if(($output_fmt eq 'align') or ($output_fmt eq 'all')){
-		my $blastn_outfile = $blastn_filename . ".aln";
+		my $blastn_outfile = $blastn_filename . ".aln.txt";
 		unless(-s $blastn_outfile){
 			warn "Generating blastn alignment file....\n";
 			my $blastnCmd  = "$blastn -query $fasta_query -db $fasta_target -task $blastn_task -gapopen $gap_open -gapextend $gap_extend -dust yes -num_descriptions $num_descriptions -num_alignments $num_alignments -evalue 1e-6 -out $blastn_outfile -num_threads $blast_num_cpu";

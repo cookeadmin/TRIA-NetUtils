@@ -6,11 +6,12 @@ use Getopt::Long;
 use File::Basename;
 use IPC::Open2;
 
-my ($target_infile, $query_infile, $min_percent_id, $num_descriptions, $num_alignments, $blast_num_cpu, $output_fmt, $output_dir);
+my ($target_infile, $query_infile, $min_percent_id, $min_qcov, $num_descriptions, $num_alignments, $blast_num_cpu, $output_fmt, $output_dir);
 GetOptions(
       'd=s'    => \$target_infile,
       'i=s'    => \$query_infile,
       'p=s'    => \$min_percent_id,
+      'c=s'    => \$min_qcov,
       'v=s'    => \$num_descriptions,
       'b=s'    => \$num_alignments,
       'a=s'    => \$blast_num_cpu,
@@ -25,7 +26,8 @@ usage() unless (
 );
 
 
-$min_percent_id = 0 unless defined $min_percent_id;
+$min_qcov = 80 unless defined $min_qcov;
+$min_percent_id = 80 unless defined $min_percent_id;
 $num_descriptions = 25 unless defined $num_descriptions;
 $num_alignments = 25 unless defined $num_alignments;
 $blast_num_cpu = 2 unless defined $blast_num_cpu;
@@ -39,27 +41,29 @@ sub usage {
 
 die <<"USAGE";
 
-Usage: $0 -d target_infile -i query_infile -p min_percent_id -v num_descriptions -b num_alignments -a blast_num_cpu -f output_fmt -o output_dir
+Usage: $0 -d target_infile -i query_infile -p min_percent_id -c min_qcov -v num_descriptions -b num_alignments -a blast_num_cpu -f output_fmt -o output_dir
 
 Description - 
 
 OPTIONS:
 
-      -d target_infile -
+-d target_infile -
 
-      -i query_infile -
+-i query_infile -
 
-      -p min_percent_id 
+-p min_percent_id 
 
-      -v num_descriptions -
+-c min_qcov - 
 
-      -b num_alignments -
+-v num_descriptions -
 
-      -a blast_num_cpu -
-      
-      -f output_fmt - 
-      
-      -o output_dir -
+-b num_alignments -
+
+-a blast_num_cpu -
+
+-f output_fmt - 
+
+-o output_dir -
 
 
 USAGE
@@ -74,7 +78,7 @@ my $fasta_query_name = fileparse($query_infile);
 my $fasta_target_name = fileparse($target_infile);
 my $tblastn_filename = join('/', $output_dir, join("_", $fasta_query_name, $fasta_target_name . '.tblastn'));
 
-my $tblastn_infile = generate_tblastn($query_infile, $target_infile, $num_descriptions, $num_alignments, $min_percent_id, $blast_num_cpu, $output_fmt, $tblastn_filename);
+my $tblastn_infile = generate_tblastn($query_infile, $target_infile, $num_descriptions, $num_alignments, $min_percent_id, $min_qcov, $blast_num_cpu, $output_fmt, $tblastn_filename);
 
 # makeblastdb -in ncbi_nr_db_2014-05-30_organisms.fasta -dbtype 'nucl' -out ncbi_nr_db_2014-05-30_organisms.fasta
 sub makeblastdb_nuc{
@@ -98,20 +102,31 @@ sub makeblastdb_nuc{
 }
 
 sub generate_tblastn{
+
 	my $fasta_query = shift;
 	die "Error lost fasta query file" unless defined $fasta_query;
+	
 	my $fasta_target = shift;
 	die "Error lost fasta database target file" unless defined $fasta_target;
+	
 	my $num_descriptions = shift;
 	die "Error lost number of descriptions" unless defined $num_descriptions;
+	
 	my $num_alignments = shift;
 	die "Error lost number of alignments" unless defined $num_alignments;
+	
 	my $min_percent_id = shift;
 	die "Error lost minimum percent identity" unless defined $min_percent_id;
+	
+	my $min_qcov = shift;
+	die "Error lost minimum query coverage" unless defined $min_qcov;
+	
 	my $blast_num_cpu = shift;
 	die "Error lost number of cpus to allocate" unless defined $blast_num_cpu;
+	
 	my $output_fmt = shift;
 	die "Error lost blastn output format" unless defined $output_fmt;
+	
 	my $tblastn_filename = shift;
 	die "Error lost tblastn output filename" unless defined $tblastn_filename;
 
@@ -128,14 +143,14 @@ sub generate_tblastn{
 			print OUTFILE join("\t", "query_name", "target_name", "query_coverage", "percent_identity", "percent_positives", "align_length", "num_mismatch", 
 			"num_gaps", "query_start", "query_end", "target_start", "target_end", "e_value", "bit_score") . "\n"; 
 			local (*TBLASTN_OUT, *TBLASTN_IN);
-			my  $pid = open2(\*TBLASTN_OUT,\*TBLASTN_IN, $tblastnCmd) or die "Error calling open2: $!";
+			my $pid = open2(\*TBLASTN_OUT,\*TBLASTN_IN, $tblastnCmd) or die "Error calling open2: $!";
 			close TBLASTN_IN or die "Error closing STDIN to tblastn process: $!";
 			while(<TBLASTN_OUT>){
 				chomp $_;
 				my @blastn_hit =  split(/\t/, $_);
 				my ($query_name, $target_name, $query_coverage, $percent_identity, $percent_positives, $align_length, $num_mismatch,
 					$num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) = @blastn_hit;
-				if($percent_identity >= $min_percent_id){
+				if(($percent_identity >= $min_percent_id) and ($query_coverage >= $min_qcov)){
 					$e_value = "< 1e-179" if ($e_value =~ m/0\.0/);
 					print OUTFILE join("\t", $query_name, $target_name, $query_coverage, $percent_identity, $percent_positives, $align_length, $num_mismatch, 
 						$num_gaps, $query_start, $query_end, $target_start, $target_end, $e_value, $bit_score) . "\n";
