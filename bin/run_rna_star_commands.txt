@@ -1,0 +1,4 @@
+sh /home/muirheadk/run_rna-STAR.sh /home/muirheadk/snipper/white_spruce/white_spruce_chitinase_analysis/PG29-scaffolds-fasta-files 18 PG29 /home/muirheadk/GCAT_WS-3.3.cluseq_all-chitinase-sequence-ids.fastq 5 /home/muirheadk/snipper/white_spruce/white_spruce_chitinase_analysis/STAR_OUTPUT_DIR
+
+sh /home/muirheadk/run_rna-STAR.sh /home/muirheadk/snipper/white_spruce/white_spruce_chitinase_analysis/WS77111-scaffolds-fasta-files 19 WS77111 /home/muirheadk/GCAT_WS-3.3.cluseq_all-chitinase-sequence-ids.fastq 5 /home/muirheadk/snipper/white_spruce/white_spruce_chitinase_analysis/STAR_OUTPUT_DIR
+

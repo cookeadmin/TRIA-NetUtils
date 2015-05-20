@@ -1,0 +1,10 @@
+#!/bin/bash
+#PBS -l walltime=72:00:00
+#PBS -M kevin5@ualberta.ca
+#PBS -l mem=40gb
+#PBS -m bea
+#PBS -l procs=16
+cd $PBS_O_WORKDIR
+
+sh /home/kevmu/STAR_ANALYSIS_2015-02-04/run_rna-STAR.sh /home/kevmu/STAR_ANALYSIS_2015-02-04/FASTA_FILES/PG29-scaffolds-fasta-files 18 PG29 /home/kevmu/STAR_ANALYSIS_2015-02-04/FASTA_FILES/GCAT_WS-3.3.cluseq_all-chitinase-sequence-ids.fastq 16 /home/kevmu/STAR_ANALYSIS_2015-02-04/STAR_OUTPUT_DIR
+sh /home/kevmu/STAR_ANALYSIS_2015-02-04/run_rna-STAR.sh /home/kevmu/STAR_ANALYSIS_2015-02-04/FASTA_FILES/WS77111-scaffolds-fasta-files 19 WS77111 /home/kevmu/STAR_ANALYSIS_2015-02-04/FASTA_FILES/GCAT_WS-3.3.cluseq_all-chitinase-sequence-ids.fastq 16 /home/kevmu/STAR_ANALYSIS_2015-02-04/STAR_OUTPUT_DIR

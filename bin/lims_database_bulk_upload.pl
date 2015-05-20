@@ -10,6 +10,8 @@ use POSIX;
 use open qw/:std :utf8/;
 
 #  sudo perl lims_database_bulk_upload.pl -i ~/workspace/bulk_upload_files/reformated_csv_files/M004_fungal_associates.csv -n triad_demo -o ~/workspace/triad_lims_demo_backups
+# perl lims_database_bulk_upload.pl -i ~/workspace/bulk_upload_files/reformated_csv_files/M002-field_samples/M002-MPB-sandbox/NEED_TO_GENERATE_LANDSCAPE_STANDS/M002-MPB-ADULTS-NO-LANDSCAPE-STANDS.csv -n triad-demo -o ~/workspace/triad_lims_backup-2015-05-13cd /home/cookeadmin/workspace/lims_database_entries-2015-05-11/triad_production/tables
+
 my ($infile, $webapp_name, $backup_dir);
 GetOptions(
 	'i=s'    => \$infile,
@@ -173,7 +175,8 @@ for(my $i = 0; $i < $row_counter; $i++){
       
       $stand_desc_name = @{$column_values{"Stand Description - Name"}}[$i] if(defined(@{$column_values{"Stand Description - Name"}}[$i])) or die "Error: Stand Description - Name is blank on line $i of file $infile";
 
-      $landscape_stand_comments = @{$column_values{"Landscape Stand - Comments"}}[$i] if(defined(@{$column_values{"Landscape Stand - Comments"}}[$i])) or die "Error: Landscape Stand - Comments is blank on line $i of file $infile";
+      $landscape_stand_comments = @{$column_values{"Landscape Stand - Comments"}}[$i] if(defined(@{$column_values{"Landscape Stand - Comments"}}[$i]));
+      $landscape_stand_comments = "N/A" unless(defined($landscape_stand_comments) and ($landscape_stand_comments !~ m/^$/));
 
       # Checking the contents from the spreadsheet for landscape and stand data.
       warn join(", ", "Landscape ID", "Landscape Description - Field Code", "Stand ID","Stand Description - Name") . "\n";
@@ -191,7 +194,7 @@ for(my $i = 0; $i < $row_counter; $i++){
 
       # Assign $field code if Stand Description - Field Code is present in the file. Otherwise give it a unique field code by taking the first three letters of $landscape_desc_field_code and the $stand_id number.
       $stand_field_code = @{$column_values{"Stand Description - Field Code"}}[$i] if(defined(@{$column_values{"Stand Description - Field Code"}}[$i]));
-      $stand_field_code = join("-", substr($landscape_desc_field_code, 0, 3), sprintf("%d", $stand_id)) unless(defined($stand_field_code));
+      $stand_field_code = join("-", substr($landscape_desc_field_code, 0, 3), sprintf("%d", $stand_id)) unless(defined($stand_field_code) and ($stand_field_code !~ m/^$/));
 
       $experiment_id = $experiment_database_id;
 
@@ -278,18 +281,18 @@ for(my $i = 0; $i < $row_counter; $i++){
       $tree_number = $tree_sample_code;
 
       $latitude = @{$column_values{"Latitude (Decimal Degrees)"}}[$i] if(defined(@{$column_values{"Latitude (Decimal Degrees)"}}[$i]));
-      $latitude = "0.0" unless(defined($latitude));
+      $latitude = "0.0" unless(defined($latitude) and ($latitude !~ m/^$/));
 
       $longitude = @{$column_values{"Longitude (Decimal Degrees)"}}[$i] if(defined(@{$column_values{"Longitude (Decimal Degrees)"}}[$i]));
-      $longitude = "0.0" unless(defined($longitude));
+      $longitude = "0.0" unless(defined($longitude) and ($longitude !~ m/^$/));
 
       $tree_height = @{$column_values{"Tree Description - DBH (cm)"}}[$i] if(defined(@{$column_values{"Tree Description - DBH (cm)"}}[$i]));
       $tree_height = @{$column_values{"Tree height"}}[$i] if(defined(@{$column_values{"Tree height"}}[$i]));
       $tree_height = @{$column_values{"DBH (cm)"}}[$i] if(defined(@{$column_values{"DBH (cm)"}}[$i]));
-      $tree_height = "0" unless(defined($tree_height)); 
+      $tree_height = "0" unless(defined($tree_height) and ($tree_height !~ m/^$/));
       
       $altitude = @{$column_values{"Altitude"}}[$i] if(defined(@{$column_values{"Altitude"}}[$i]));
-      $altitude = "N/A" unless(defined($altitude)); 
+      $altitude = "N/A" unless(defined($altitude) and ($altitude !~ m/^$/)); 
 
       $tree_num_code = "";
       if($tree_number =~ m/(\d+)(\w+)/){
@@ -297,14 +300,12 @@ for(my $i = 0; $i < $row_counter; $i++){
       }else{
 	    $tree_num_code = $tree_number;
       }
-
-      
-      $tree_field_code = join("-", substr($landscape_desc_field_code, 0, 3), sprintf("%d", $stand_id), $tree_num_code) if(($stand_id eq $stand_sample_code) and ($tree_number eq $tree_sample_code)) or die "Error: Stand and Tree Number from file $infile doesn't match the unique sample id Stand and Tree Number codes\nStand: $stand_id <=> $stand_sample_code\nTree Number: $tree_number <=> $tree_sample_code";
       $tree_field_code = @{$column_values{"Tree Field Code"}}[$i] if(defined(@{$column_values{"Tree Field Code"}}[$i]));
+      $tree_field_code = join("-", substr($landscape_desc_field_code, 0, 3), sprintf("%d", $stand_id), $tree_num_code) if(($stand_id eq $stand_sample_code) and ($tree_number eq $tree_sample_code)) or die "Error: Stand and Tree Number from file $infile doesn't match the unique sample id Stand and Tree Number codes\nStand: $stand_id <=> $stand_sample_code\nTree Number: $tree_number <=> $tree_sample_code";
 
       $attack = @{$column_values{"A/U Description"}}[$i] if(defined(@{$column_values{"A/U Description"}}[$i]));
       $attack = @{$column_values{"Affected/Unaffected"}}[$i] if(defined(@{$column_values{"Affected/Unaffected"}}[$i]));
-      $attack = 0 unless(defined($attack));
+      $attack = 0 unless(defined($attack) and ($attack !~ m/^$/));
       if($attack =~ m/^A$/ or $attack =~ m/^Affected$/){
 	    $attack = 1;
       }elsif($attack =~ m/^U$/ or $attack =~ m/^Unaffected/){
@@ -313,40 +314,42 @@ for(my $i = 0; $i < $row_counter; $i++){
 
 
       $age = @{$column_values{"Notes - Tree Age (years)"}}[$i] if(defined(@{$column_values{"Notes - Tree Age (years)"}}[$i]));
-      $age = "unknown" unless(defined($age)); 
+      $age = @{$column_values{"Tree Age (Years)"}}[$i] if(defined(@{$column_values{"Tree Age (Years)"}}[$i]));
+      $age = "unknown" unless(defined($age) and ($age !~ m/^$/)); 
 
       $stand_aspect = @{$column_values{"Stand Description - Aspect"}}[$i] if(defined(@{$column_values{"Stand Description - Aspect"}}[$i]));
-      $stand_aspect = "N/A" unless(defined($stand_aspect));
+      $stand_aspect = "N/A" unless(defined($stand_aspect) and ($stand_aspect !~ m/^$/));
 
       $stand_slope = @{$column_values{"Stand Description - Slope"}}[$i] if(defined(@{$column_values{"Stand Description - Slope"}}[$i]));
-      $stand_slope = "N/A" unless(defined($stand_slope));
+      $stand_slope = "N/A" unless(defined($stand_slope) and ($stand_slope !~ m/^$/));
 
       $stand_density = @{$column_values{"Stand Description - Density"}}[$i] if(defined(@{$column_values{"Stand Description - Density"}}[$i]));
-      $stand_density = "N/A" unless(defined($stand_density));
+      $stand_density = "N/A" unless(defined($stand_density) and ($stand_density !~ m/^$/));
 
       $stand_composition = @{$column_values{"Stand Description - Composition"}}[$i] if(defined(@{$column_values{"Stand Description - Composition"}}[$i]));
-      $stand_composition = "N/A" unless(defined($stand_composition));
+      $stand_composition = "N/A" unless(defined($stand_composition) and ($stand_composition !~ m/^$/));
 
       $stand_baited = @{$column_values{"Stand Description - Baited?"}}[$i] if(defined(@{$column_values{"Stand Description - Baited?"}}[$i]));
-      $stand_baited = "N/A" unless(defined($stand_baited));
+      $stand_baited = "N/A" unless(defined($stand_baited) and ($stand_baited !~ m/^$/));
 
       $success = @{$column_values{"Tree Description - Attack"}}[$i] if(defined(@{$column_values{"Tree Description - Attack"}}[$i]));
       $success = @{$column_values{"Tree Description - Success"}}[$i] if(defined(@{$column_values{"Tree Description - Success"}}[$i]));
-      $success = "N/A" unless(defined($success));
+      $success = "N/A" unless(defined($success) and ($success !~ m/^$/));
 
       my @field_description = ();
+      push(@field_description, @{$column_values{"Tree Description - Field"}}[$i]) if(defined(@{$column_values{"Tree Description - Field"}}[$i]) and @{$column_values{"Tree Description - Field"}}[$i] ne "");
       push(@field_description, join(" ", "Tree Description - Other:", @{$column_values{"Tree Description - Other"}}[$i])) if(defined(@{$column_values{"Tree Description - Other"}}[$i]) and @{$column_values{"Tree Description - Other"}}[$i] ne "");
-      push(@field_description, join(" ", "Tree Description - Field:", @{$column_values{"Tree Description - Field"}}[$i])) if(defined(@{$column_values{"Tree Description - Field"}}[$i]) and @{$column_values{"Tree Description - Field"}}[$i] ne "");
       push(@field_description, join(" ", "Tree Code (Waypoint):", @{$column_values{"Tree Code (Waypoint)"}}[$i])) if(defined(@{$column_values{"Tree Code (Waypoint)"}}[$i]) and @{$column_values{"Tree Code (Waypoint)"}}[$i] ne "");
+      push(@field_description, join(" ", "Tree Code (B. Cooke, M001):", @{$column_values{"Tree Code (B. Cooke, M001)"}}[$i])) if(defined(@{$column_values{"Tree Code (B. Cooke, M001)"}}[$i]) and @{$column_values{"Tree Code (B. Cooke, M001)"}}[$i] ne "");
 
       if(scalar(@field_description) >= 1){
 	    $description_field = join("; ", @field_description);
       }else{
-	    $description_field = "N/A" unless(defined($description_field)); 
+	    $description_field = "N/A" unless(defined($description_field) and ($description_field !~ m/^$/)); 
       }
       
       $description_lab = @{$column_values{"Tree Description - Lab"}}[$i] if(defined(@{$column_values{"Tree Description - Lab"}}[$i]));
-      $description_lab = "N/A" unless(defined($description_lab));
+      $description_lab = "N/A" unless(defined($description_lab) and ($description_lab !~ m/^$/));
 
       my @field_tree_comments = ();
       push(@field_tree_comments, join(" ", "Field Tree - Comments", @{$column_values{"Field Tree - Comments"}}[$i])) if(defined(@{$column_values{"Field Tree - Comments"}}[$i]) and @{$column_values{"Field Tree - Comments"}}[$i] ne "");
@@ -483,6 +486,12 @@ for(my $i = 0; $i < $row_counter; $i++){
       if($organism_sample_code =~ m/^(U[A-Z]+)\d+D[A-Z]+\d+(G\d+)/){
 	    $condition_code = $1;
 	    $gallery_code = $2;
+      }elsif($organism_sample_code =~ m/^(U[A-Z]+)\d+(G\d+)/){
+	    $condition_code = $1;
+	    $gallery_code = $2;
+      }elsif($organism_sample_code =~ m/^(U[A-Z]+)\d+D[A-Z]+\d+\/\d+(G\d+)/){
+	    $condition_code = $1;
+	    $gallery_code = $2;
       }elsif($organism_sample_code =~ m/^(D[A-Z]+)\d+(G\d+)/){
 	    $condition_code = $1;
 	    $gallery_code = $2;
@@ -496,7 +505,22 @@ for(my $i = 0; $i < $row_counter; $i++){
 
       my $sample_condition_detail_code = join("-", $experiment_sample_code, $landscape_sample_code, $stand_sample_code, $tree_sample_code, $condition_code);
 
+
+# 134	111	2	FieldCollection	2 DL
+# 135	111	6	FieldCollection	3 DA
+# 136	111	3	FieldCollection	4 UC
+# 137	111	4	FieldCollection	5 UL
+# 138	111	5	FieldCollection	6 UM
+
       my %field_collection_codes = (
+	    "F" => 133, # M002    
+	    "DA" => 135, # M002
+	    "DL" => 134, # M002
+	    "DP" => 625, # M002
+	    "DT" => 624, # M002
+	    "UC" => 136, # M002
+	    "UL" => 137, # M002
+	    "UM" => 138, # M002
 # 	    "DL" => 501, # M004
 # 	    "UC" => 502, # M004
 # 	    "UL" => 503, # M004
@@ -529,6 +553,11 @@ for(my $i = 0; $i < $row_counter; $i++){
       my $biomaterial_species = @{$column_values{"Biomaterial - Species"}}[$i] if(defined(@{$column_values{"Biomaterial - Species"}}[$i])) or die "Error: Biomaterial - Species on line $i of file $infile"; #M038
 
       my %biomaterial_codes = (
+	"Dendroctonus ponderosae" => 132, #M002
+	"Grosmannia clavigera" => 132, #M002
+	"Leptographium longiclavatum" => 132, #M002
+	"Ophiostoma montium" => 132, #M002
+
 # 	"Pinus contorta" => 495, #M004
 # 	"Dendroctonus ponderosae" => 549, #M004
 # 	"Ophiostoma montium" => 550, #M004
@@ -541,9 +570,9 @@ for(my $i = 0; $i < $row_counter; $i++){
 # 	"Grosmannia clavigera and Leptographium longiclavatum" => 557, #M004
 # 	"Grosmannia clavigera, Ophiostoma montium, Grosmannia sp." => 558, #M004
 # 	"Leptographium longiclavatum and Ophiostoma montium" => 559, #M004
-# 	    "Pinus banksiana" => 496, #M038
-# 	    "Pinus contorta var. latifolia" => 497, #M038
-# 	    "Pinus contorta var. contorta" => 498, #M038
+# 	"Pinus banksiana" => 496, #M038
+# 	"Pinus contorta var. latifolia" => 497, #M038
+# 	"Pinus contorta var. contorta" => 498, #M038
 # 	"Dendroctonus ponderosae" => 172, #M014
 # 	"Grosmannia clavigera" => 173, #M014
 # 	"Ophiostoma montium" => 174, #M014
@@ -653,6 +682,10 @@ for(my $i = 0; $i < $row_counter; $i++){
 
       if($organism_sample_code =~ m/^(U[A-Z]+\d+D[A-Z]+\d+G\d+)/){
 	    $individual = $1; 
+      }elsif($organism_sample_code =~ m/^(U[A-Z]+\d+G\d+)/){
+	    $individual = $1; 
+      }elsif($organism_sample_code =~ m/^(U[A-Z]+\d+D[A-Z]+\d+\/\d+G\d+)/){
+	    $individual = $1; 
       }elsif($organism_sample_code =~ m/^(D[A-Z]+\d+G\d+)/){
 	    $individual = $1; 
       }elsif($organism_sample_code =~ m/^(F\d*)/){
@@ -662,7 +695,7 @@ for(my $i = 0; $i < $row_counter; $i++){
       }elsif($organism_sample_code =~ m/^(G\d*)/){
 	    $individual = $1; 
       }
-
+      
       $storage = "CCIS 5-104" unless(defined(@{$column_values{"Storage"}}[$i]));
 
       $field_sample_code = $unique_sample_id;
@@ -673,13 +706,22 @@ for(my $i = 0; $i < $row_counter; $i++){
       # Biomaterial - Collection	Biomaterial - Culture
       # Gallery	Gallery Description
       if($condition_code =~ m/^U[A-Z]+/){
+      		push(@process_details, join(" ", "Collection Description:", @{$column_values{"Biomaterial - Collection"}}[$i])) if(defined(@{$column_values{"Biomaterial - Collection"}}[$i]) and @{$column_values{"Biomaterial - Collection"}}[$i] ne "");
+		push(@process_details, join(" ", "Culture Description:", @{$column_values{"Biomaterial - Culture"}}[$i])) if(defined(@{$column_values{"Biomaterial - Culture"}}[$i]) and @{$column_values{"Biomaterial - Culture"}}[$i] ne "");
 		push(@process_details, join(" ", "Gallery Description:", @{$column_values{"Gallery Description"}}[$i])) if(defined(@{$column_values{"Gallery Description"}}[$i]) and @{$column_values{"Gallery Description"}}[$i] ne "");
 		push(@process_details, join(" ", "Slab Description:", @{$column_values{"Slab Description"}}[$i])) if(defined(@{$column_values{"Slab Description"}}[$i]) and @{$column_values{"Slab Description"}}[$i] ne "");
 		push(@process_details, join(" ", "Beetle Code:", @{$column_values{"Beetle Code"}}[$i])) if(defined(@{$column_values{"Beetle Code"}}[$i]) and @{$column_values{"Beetle Code"}}[$i] ne "");
 		push(@process_details, join(" ", "Fungus Code:", @{$column_values{"Fungus Code"}}[$i])) if(defined(@{$column_values{"Fungus Code"}}[$i]) and @{$column_values{"Fungus Code"}}[$i] ne "");
 		push(@process_details, join(" ", "Associated MPB:", @{$column_values{"Associated MPB"}}[$i])) if(defined(@{$column_values{"Associated MPB"}}[$i]) and @{$column_values{"Associated MPB"}}[$i] ne "");
+		push(@process_details, join(" ", "Selection for Multi-Locus Typing:", @{$column_values{"Selection for Multi-Locus Typing"}}[$i])) if(defined(@{$column_values{"Selection for Multi-Locus Typing"}}[$i]) and @{$column_values{"Selection for Multi-Locus Typing"}}[$i] ne "");
+		push(@process_details, join(" ", "SSI #:", @{$column_values{"SSI #"}}[$i])) if(defined(@{$column_values{"SSI #"}}[$i]) and @{$column_values{"SSI #"}}[$i] ne "");
+		push(@process_details, join(" ", "Genoytpe:", @{$column_values{"Genoytpe"}}[$i])) if(defined(@{$column_values{"Genoytpe"}}[$i]) and @{$column_values{"Genoytpe"}}[$i] ne "");
+		push(@process_details, join(" ", "Haplotype:", @{$column_values{"Haplotype"}}[$i])) if(defined(@{$column_values{"Haplotype"}}[$i]) and @{$column_values{"Haplotype"}}[$i] ne "");
+		push(@process_details, join(" ", "Notes - other:", @{$column_values{"Notes - other"}}[$i])) if(defined(@{$column_values{"Notes - other"}}[$i]) and @{$column_values{"Notes - other"}}[$i] ne "");
 
       }elsif($condition_code =~ m/^D[A-Z]+/){
+      		push(@process_details, join(" ", "Collection Description:", @{$column_values{"Biomaterial - Collection"}}[$i])) if(defined(@{$column_values{"Biomaterial - Collection"}}[$i]) and @{$column_values{"Biomaterial - Collection"}}[$i] ne "");
+		push(@process_details, join(" ", "Culture Description:", @{$column_values{"Biomaterial - Culture"}}[$i])) if(defined(@{$column_values{"Biomaterial - Culture"}}[$i]) and @{$column_values{"Biomaterial - Culture"}}[$i] ne "");
 		push(@process_details, join(" ", "Gallery Description:", @{$column_values{"Gallery Description"}}[$i])) if(defined(@{$column_values{"Gallery Description"}}[$i]) and @{$column_values{"Gallery Description"}}[$i] ne "");
 		push(@process_details, join(" ", "Slab Description:", @{$column_values{"Slab Description"}}[$i])) if(defined(@{$column_values{"Slab Description"}}[$i]) and @{$column_values{"Slab Description"}}[$i] ne "");
 		push(@process_details, join(" ", "Beetle Code:", @{$column_values{"Beetle Code"}}[$i])) if(defined(@{$column_values{"Beetle Code"}}[$i]) and @{$column_values{"Beetle Code"}}[$i] ne "");
@@ -713,7 +755,18 @@ for(my $i = 0; $i < $row_counter; $i++){
 	    push(@field_sample_comments, join(" ", "Notes on individual MPB:", @{$column_values{"Comments - Notes on individual MPB"}}[$i])) if(defined(@{$column_values{"Comments - Notes on individual MPB"}}[$i]) and @{$column_values{"Comments - Notes on individual MPB"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Used for DNA:", @{$column_values{"Comments - Used for DNA"}}[$i])) if(defined(@{$column_values{"Comments - Used for DNA"}}[$i]) and @{$column_values{"Comments - Used for DNA"}}[$i] ne "");
 	    push(@field_sample_comments, join(" ", "Used for fungal sampling:", @{$column_values{"Comments - Used for fungal sampling"}}[$i])) if(defined(@{$column_values{"Comments - Used for fungal sampling"}}[$i]) and @{$column_values{"Comments - Used for fungal sampling"}}[$i] ne "");
-	    
+	    push(@field_sample_comments, join(" ", "Head and Body:", @{$column_values{"Biomaterials - Comments"}}[$i])) if(defined(@{$column_values{"Biomaterials - Comments"}}[$i]) and @{$column_values{"Biomaterials - Comments"}}[$i] ne "");
+            push(@field_sample_comments, join(" ", "Notes on Extra Larvae:", @{$column_values{"Biomaterials - Extra Larvae"}}[$i])) if(defined(@{$column_values{"Biomaterials - Extra Larvae"}}[$i]) and @{$column_values{"Biomaterials - Extra Larvae"}}[$i] ne "");
+            push(@field_sample_comments, join(" ", "Notes on Disk:", @{$column_values{"Notes - larvae from same disk"}}[$i])) if(defined(@{$column_values{"Notes - larvae from same disk"}}[$i]) and @{$column_values{"Notes - larvae from same disk"}}[$i] ne "");
+	    push(@field_sample_comments, join(" ", "Notes on Disk:", @{$column_values{"Notes - disk"}}[$i])) if(defined(@{$column_values{"Notes - disk"}}[$i]) and @{$column_values{"Notes - disk"}}[$i] ne "");
+	    push(@field_sample_comments, join(" ", "Notes on larvae:", @{$column_values{"Notes on larvae"}}[$i])) if(defined(@{$column_values{"Notes on larvae"}}[$i]) and @{$column_values{"Notes on larvae"}}[$i] ne "");
+ 	    push(@field_sample_comments, join(" ", "Notes on gallery:", @{$column_values{"Notes - gallery"}}[$i])) if(defined(@{$column_values{"Notes - gallery"}}[$i]) and @{$column_values{"Notes - gallery"}}[$i] ne "");
+ 	    push(@field_sample_comments, join(" ", "Notes on gallery:", @{$column_values{"Notes - gallery (g)"}}[$i])) if(defined(@{$column_values{"Notes - gallery (g)"}}[$i]) and @{$column_values{"Notes - gallery (g)"}}[$i] ne "");
+            push(@field_sample_comments, join(" ", "Other Notes:", @{$column_values{"Notes - other"}}[$i])) if(defined(@{$column_values{"Notes - other"}}[$i]) and @{$column_values{"Notes - other"}}[$i] ne "");
+	    push(@field_sample_comments, join(" ", "Alternative Number:", @{$column_values{"alternative number"}}[$i])) if(defined(@{$column_values{"alternative number"}}[$i]) and @{$column_values{"alternative number"}}[$i] ne "");
+            push(@field_sample_comments, join(" ", "msat data available:", @{$column_values{"msat data available"}}[$i])) if(defined(@{$column_values{"msat data available"}}[$i]) and @{$column_values{"msat data available"}}[$i] ne "");
+	    push(@field_sample_comments, join(" ", "msat data available:", @{$column_values{"msat data avail"}}[$i])) if(defined(@{$column_values{"msat data avail"}}[$i]) and @{$column_values{"msat data avail"}}[$i] ne "");
+      
       }elsif($condition_code =~ m/^F/){
 
       }elsif($condition_code =~ m/^M/){

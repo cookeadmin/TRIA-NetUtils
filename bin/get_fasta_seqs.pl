@@ -83,9 +83,11 @@ while(my $seq_entry = $seqio->next_seq) {
 		}
 		
 		if($is_seq_id_found eq "true"){
-			warn join("\n", ">$sequence_id", $sequence) . "\n";
-			print OUTFILE1 join("\n", ">$sequence_id", $sequence) . "\n";
-			print OUTFILE2 "$sequence_id" . "\n";
+			my $seq_length = join("=", "length", length($sequence));
+			my $seq_header = join(" ", $sequence_id, $seq_length);
+			warn join("\n", ">$seq_header", $sequence) . "\n";
+			print OUTFILE1 join("\n", ">$seq_header", $sequence) . "\n";
+			print OUTFILE2 "$seq_header" . "\n";
 		}
 	}
 	
